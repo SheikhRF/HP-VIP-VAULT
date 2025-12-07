@@ -229,7 +229,6 @@ body {
   position: relative;
   z-index: 2;
   pointer-events: none; /* disabled here, re-enabled on children below */
-  min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
