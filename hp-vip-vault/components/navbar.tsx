@@ -39,15 +39,6 @@ export default function Navbar() {
           placeholder="search"
           className="ml-4 hidden rounded-full bg-neutral-700 px-3 py-1 text-sm text-white placeholder-gray-400 focus:outline-none sm:block"
         />
-      <Link href="/login" passHref>
-        <Button
-          size="sm"
-          className="ml-4 rounded-full bg-orange-500 hover:bg-orange-600 text-white"
-        >
-          Login
-        </Button>
-      </Link>
-      
       </div>
     </nav>
   )

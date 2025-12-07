@@ -1,0 +1,23 @@
+| Variable                       | Meaning                                 |
+| ------------------------------ | --------------------------------------- |
+| `--color-background`           | Main page background colour             |
+| `--color-foreground`           | Default text colour                     |
+| `--color-card`                 | Card element background                 |
+| `--color-card-foreground`      | Text colour inside cards                |
+| `--color-primary`              | Primary brand colour (buttons, accents) |
+| `--color-primary-foreground`   | Text Colour on primary elements         |
+| `--color-accent`               | Accent colour (small highlights)        |
+| `--color-accent-foreground`    | Text colour on accent items             |
+| `--color-border`               | Borders for inputs, cards, etc          |
+| `--color-input`                | Input field background                  |
+| `--color-ring`                 | Focus ring / outline colour             |
+| `--color-muted`                | Subtle background areas                 |
+| `--color-muted-foreground`     | Muted text                              |
+| `--color-secondary`            | Secondary surfaces                      |
+| `--color-secondary-foreground` | Text on secondary surfaces              |
+| `--radius-sm`                  | 6px border radius                       |
+| `--radius-md`                  | 8px border radius                       |
+| `--radius-lg`                  | 12px border radius                      |
+| `--radius-xl`                  | 16px border radius                      |
+| `--font-sans`                  | Default UI font                         |
+| `--font-mono`                  | Code font                               |
