@@ -10,6 +10,11 @@
 !.yarn/releases
 !.yarn/versions
 
+# dotenv environment variables file
+.env
+.env.*
+!.env.example
+
 # testing
 /coverage
 
