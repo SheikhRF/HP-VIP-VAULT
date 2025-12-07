@@ -1,5 +1,5 @@
 import Navbar from "@/components/navbar";
-
+import { InstagramEmbed } from "@/components/InstagramEmbed";
 export default function Home(){
   return(
     <>
@@ -12,7 +12,9 @@ export default function Home(){
               <div className="grid grid-cols-2 md:grid-cols-3 gap-8 px-theme">
                 {/* Placeholder image cards */}
                 {[1, 2, 3].map((item) => (
-              <div key={item} className="aspect-square bg-card rounded-md"></div>
+              <div key={item} className="aspect-square bg-card rounded-md">
+                <InstagramEmbed url="https://www.instagram.com/p/DLf_0oPofmF/?utm_source=ig_embed&amp;utm_campaign=loading" />
+              </div>
             ))}
           </div>
           </div>
