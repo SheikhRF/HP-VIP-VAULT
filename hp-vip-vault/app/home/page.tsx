@@ -1,5 +1,12 @@
 import Navbar from "@/components/navbar";
 import { InstagramEmbed } from "@/components/InstagramEmbed";
+
+const INSTAGRAM_POSTS = [
+    "https://www.instagram.com/p/DLf_0oPofmF/?utm_source=ig_embed&amp;utm_campaign=loading",
+    "https://www.instagram.com/p/DR2v02BjWye/?utm_source=ig_embed&amp;utm_campaign=loading",
+    "https://www.instagram.com/p/DPR2b3sAJnc/?utm_source=ig_embed&amp;utm_campaign=loading"
+]
+
 export default function Home(){
   return(
     <>
@@ -10,11 +17,8 @@ export default function Home(){
           <div style = {{marginTop: "100px" }} className="w-full max-w-5x1 mb-12">
             <h2 className="text-2xl font-bold text-primary mb-4 text-center">Instagram</h2>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-8 px-theme">
-                {/* Placeholder image cards */}
-                {[1, 2, 3].map((item) => (
-              <div key={item} className="aspect-square bg-card rounded-md">
-                <InstagramEmbed url="https://www.instagram.com/p/DLf_0oPofmF/?utm_source=ig_embed&amp;utm_campaign=loading" />
-              </div>
+                {INSTAGRAM_POSTS.map((url) => (
+                <InstagramEmbed key={url} url={url} />
             ))}
           </div>
           </div>
