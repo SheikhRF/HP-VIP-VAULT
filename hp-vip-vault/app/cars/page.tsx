@@ -1,7 +1,7 @@
 // app/cars/page.tsx
 import Link from "next/link";
 import { createClient } from "@supabase/supabase-js";
-
+import Navbar from "@/components/navbar";
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
@@ -27,10 +27,12 @@ const cars = data as Car[] | null;
   }
 
   return (
+    <>
+    <Navbar />
     <main className="min-h-screen bg-background text-foreground px-6 py-10">
       {/* Top bar */}
       <div className="flex items-center justify-between mb-8">
-        <h1 className="text-3xl font-bold text-primary">Our Cars</h1>
+        <h1 className="text-3xl font-bold text-primary">The Collection</h1>
 
         <Link
           href="/cars/add"
@@ -86,5 +88,6 @@ const cars = data as Car[] | null;
         ))}
       </div>
     </main>
+    </>
   );
 }
