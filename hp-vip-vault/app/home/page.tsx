@@ -38,7 +38,7 @@ export default function Home(){
 
           {/*instagram stuff to be integrated here later*/}
           <div style = {{marginTop: "100px" }} className="w-full max-w-5x1 mb-12">
-            <h2 className="text-2xl font-bold text-primary mb-4 text-center">Instagram</h2>
+            <h2 className="text-4xl font-bold text-primary mb-4 text-center backdrop-blur-md border border-border/40 rounded-xl px-10 py-8 shadow-2xl ">Instagram</h2>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-8 px-theme">
                 {INSTAGRAM_POSTS.map((url) => (
                 <InstagramEmbed key={url} url={url} />
@@ -48,7 +48,7 @@ export default function Home(){
         
         {/* New Deliveries Section */}
         <div className="w-full">
-          <h2 className="text-2xl font-bold text-primary mb-4 text-center">New deliveries</h2>
+          <h2 className="text-4xl font-bold text-primary mb-4 text-center backdrop-blur-md border border-border/40 rounded-xl px-10 py-8 shadow-2xl">New deliveries</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 px-theme">
         {cars?.map((car) => (
           <article

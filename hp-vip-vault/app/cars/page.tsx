@@ -32,7 +32,7 @@ const cars = data as Car[] | null;
     <main className="min-h-screen bg-background text-foreground px-6 py-10">
       {/* Top bar */}
       <div className="flex items-center justify-between mb-8">
-        <h1 className="text-3xl font-bold text-primary">The Collection</h1>
+        <h1 className="text-4xl font-bold text-primary mb-4 text-center backdrop-blur-md border border-border/40 rounded-xl px-10 py-8 shadow-2xl">The Collection</h1>
 
         <Link
           href="/cars/add"

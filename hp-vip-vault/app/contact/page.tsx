@@ -21,7 +21,7 @@ export default function ContactPage() {
           We're here to help — feel free to reach out anytime.
         </p>
 
-        <div className="bg-card border border-border rounded-lg p-6 space-y-3">
+        <div className="border border-border rounded-lg p-6 space-y-3">
           <p className="text-xl font-semibold text-card-foreground">
             Email:
           </p>

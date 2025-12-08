@@ -55,7 +55,6 @@ export default function LandingPage() {
         className="
           pointer-events-auto
           text-center
-          bg-card/60
           backdrop-blur-md
           border border-border/40
           rounded-xl
@@ -70,11 +69,10 @@ export default function LandingPage() {
           href="/home"
           className="
             inline-block bg-primary text-primary-foreground 
-            px-8 py-4 rounded-lg text-xl font-semibold 
+            px-20 py-4 rounded-lg text-xl font-semibold 
             hover:opacity-50 transition shadow-lg
           "
         >
-          Enter
         </Link>
       </div>
     </div>
