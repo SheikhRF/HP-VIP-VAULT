@@ -19,7 +19,7 @@ export default function Navbar() {
 
         <NavigationMenu>
           <NavigationMenuList>
-            {["Home", "Garage", "Contact", "About"].map((item) => (
+            {["Home", "Garage", "Contact", "About","Cars",].map((item) => (
               <NavigationMenuItem key={item}>
                 <NavigationMenuLink asChild>
                   <Link
