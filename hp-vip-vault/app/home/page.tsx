@@ -1,7 +1,7 @@
 import Navbar from "@/components/navbar";
 import { InstagramEmbed } from "@/components/InstagramEmbed";
 import { createClient } from "@supabase/supabase-js";
-import Link from "next/link";
+
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -56,7 +56,7 @@ export default function Home(){
             className="aspect-video bg-card rounded-md border border-border flex flex-col overflow-hidden"
           >
             {/* Image */}
-            <div className="w-full h-[60] bg-background flex items-center justify-center overflow-hidden">
+            <div className="w-full h-[400] bg-background flex items-center justify-center overflow-hidden">
               {car.pictures ? (
                 <img
                   src={car.pictures}
