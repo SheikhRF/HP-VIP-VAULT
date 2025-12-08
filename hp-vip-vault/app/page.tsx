@@ -50,32 +50,30 @@ export default function LandingPage() {
       />
 
       {/* UI Overlay */}
-      <div className="absolute inset-0 flex items-start justify-center pt-100 pointer-events-none">
-      <div
-        className="
-          pointer-events-auto
-          text-center
-          backdrop-blur-md
-          border border-border/40
-          rounded-xl
-          px-10 py-8
-          shadow-2xl
-        "
-      >
-        <h1 className="text-5xl font-bold text-primary mb-6 drop-shadow-lg">
-          Enter the Vault
-        </h1>
+      <div className="absolute inset-0 flex items-start justify-center pt-40 pointer-events-none">
+
         <Link
           href="/home"
           className="
-            inline-block bg-primary text-primary-foreground 
-            px-20 py-4 rounded-lg text-xl font-semibold 
-            hover:opacity-50 transition shadow-lg
+            pointer-events-auto
+            text-center
+            backdrop-blur-md
+            border border-border/40
+            rounded-xl
+            px-10 py-6
+            shadow-2xl
+            justify-center
+            items-center
+            flex
+            hover:bg-white/10
+            transition
           "
         >
+          <h1 className="text-5xl font-bold text-primary mb-6 drop-shadow-lg justify-center items-center flex pt-5">
+          Enter the Vault
+        </h1>
         </Link>
       </div>
-    </div>
     </div>
   );
 }
