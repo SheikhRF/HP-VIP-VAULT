@@ -1,6 +1,6 @@
 // app/test-supabase/page.tsx
 import { createServerClient } from "@/lib/supabaseServer";
-
+import Navbar from "@/components/navbar";
 export default async function TestSupabasePage() {
   const supabase = createServerClient();
 
@@ -11,6 +11,8 @@ export default async function TestSupabasePage() {
     .limit(10); // small test limit
 
   return (
+    <>
+    <Navbar />
     <div className="min-h-screen bg-background text-foreground p-8">
       <h1 className="text-3xl font-bold mb-6 text-primary">
         Supabase Test Page
@@ -27,5 +29,7 @@ export default async function TestSupabasePage() {
         {JSON.stringify(cars, null, 2)}
       </pre>
     </div>
+    </>
   );
+  
 }
