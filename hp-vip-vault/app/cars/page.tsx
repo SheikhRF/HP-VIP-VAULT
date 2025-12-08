@@ -1,4 +1,4 @@
-// app/cars/page.tsx
+
 import Link from "next/link";
 import { createClient } from "@supabase/supabase-js";
 import Navbar from "@/components/navbar";
