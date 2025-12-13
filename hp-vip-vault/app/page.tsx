@@ -6,7 +6,7 @@ import Hyperspeed from "@/components/Hyperspeed";
 
 export default function LandingPage() {
   return (
-    <div className="relative w-full h-screen overflow">
+    <div className="relative h-screen w-screen overflow-hidden">
 
       {/* Background Effect */}
       <Hyperspeed
