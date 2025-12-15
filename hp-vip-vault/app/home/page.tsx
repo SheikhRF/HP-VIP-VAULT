@@ -39,7 +39,7 @@ export default function Home(){
           {/*instagram stuff to be integrated here later*/}
           <div style = {{marginTop: "100px" }} className="w-full max-w-5x1 mb-12">
             <h2 className="text-4xl font-bold text-primary mb-4 text-center backdrop-blur-md border border-border/40 rounded-xl px-10 py-8 shadow-2xl ">Instagram</h2>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-8 px-theme backdrop-blur-md border border-border/40 rounded-xl px-10 py-8 shadow-2xl">
+              <div className="grid md:grid-cols-3 gap-8 px-theme backdrop-blur-md border border-border/40 rounded-xl px-10 py-8 shadow-2xl">
                 {INSTAGRAM_POSTS.map((url) => (
                 <InstagramEmbed key={url} url={url} />
             ))}
