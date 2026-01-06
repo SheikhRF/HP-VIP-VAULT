@@ -1,22 +1,46 @@
+import { headers } from "next/headers";
 
-import { auth, currentUser } from "@clerk/nextjs/server";
+export const dynamic = "force-dynamic";
 
-export default async function DebugSessionPage() {
-  const authData = await auth();
-  const user = await currentUser();
+export default async function DebugPage() {
+  const h = await headers(); 
+  const host = h.get("host") ?? "localhost:3000";
+  const proto =
+    process.env.NODE_ENV === "development"
+      ? "http"
+      : (h.get("x-forwarded-proto") ?? "https");
+
+  const apiUrl = `${proto}://${host}/api/ninjas-test`;
+
+  const res = await fetch(apiUrl, { cache: "no-store" });
+  const text = await res.text();
+
+  let parsed: any = null;
+  let parseError: string | null = null;
+
+  try {
+    parsed = JSON.parse(text);
+  } catch (e: any) {
+    parseError = String(e?.message ?? e);
+  }
+
   return (
-    <div className="min-h-screen bg-background text-foreground p-8">
-      <h1 className="text-2xl font-bold mb-4">Clerk Session Debug</h1>
+    <main className="min-h-screen bg-background text-foreground p-8">
+      <h1 className="text-2xl font-bold text-primary mb-4">API Ninjas Debug</h1>
 
-      <h2 className="text-lg font-semibold mt-4">auth()</h2>
-      <pre className="bg-card p-4 rounded-lg border border-border text-sm overflow-auto">
-        {JSON.stringify(authData, null, 2)}
-      </pre>
+      <div className="bg-card border border-border rounded-lg p-4 mb-4 text-sm">
+        <div><span className="text-muted">Request:</span> {apiUrl}</div>
+        <div><span className="text-muted">HTTP status:</span> {res.status}</div>
+        {parseError && (
+          <div className="mt-2 text-red-400">
+            JSON parse failed: {parseError}
+          </div>
+        )}
+      </div>
 
-      <h2 className="text-lg font-semibold mt-6">currentUser()</h2>
-      <pre className="bg-card p-4 rounded-lg border border-border text-sm overflow-auto">
-        {JSON.stringify(user, null, 2)}
+      <pre className="bg-card border border-border rounded-lg p-4 text-sm overflow-auto">
+        {parsed ? JSON.stringify(parsed, null, 2) : text}
       </pre>
-    </div>
+    </main>
   );
 }
