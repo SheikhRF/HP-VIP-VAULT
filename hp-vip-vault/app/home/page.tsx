@@ -1,11 +1,13 @@
 import Navbar from "@/components/navbar";
 import { InstagramEmbed } from "@/components/InstagramEmbed";
 import { createClient } from "@supabase/supabase-js";
-
+import {getFirstName} from "@/lib/user/claims";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
+export const dynamic = "force-dynamic";
+
 
 const INSTAGRAM_POSTS = [
     "https://www.instagram.com/p/DLf_0oPofmF/?utm_source=ig_embed&amp;utm_campaign=loading",
@@ -30,14 +32,21 @@ const cars = data as Car[] | null;
   if (error) {
     console.error(error);
   }
+
+const firstName = await getFirstName();
+
 export default function Home(){
   return(
     <>
       <Navbar />
       <main className="flex min-h-screen flex-col items-center bg-background text-foreground py 24 px-4">
+        {/*intro section */}
+        <div style = {{marginTop: "100px" }}  className=" max-w-5x1 mb-12">
+          <h1 className="text-5xl font-bold text-primary mb-4 text-center backdrop-blur-md border border-border/40 rounded-xl px-10 py-8 shadow-2xl">Welcome to the Vault {firstName} </h1>
+        </div>
 
-          {/*instagram stuff to be integrated here later*/}
-          <div style = {{marginTop: "100px" }} className="w-full max-w-5x1 mb-12">
+        {/* Instagram Section */}
+          <div className="w-full max-w-5x1 mb-12">
             <h2 className="text-4xl font-bold text-primary mb-4 text-center backdrop-blur-md border border-border/40 rounded-xl px-10 py-8 shadow-2xl ">Instagram</h2>
               <div className="grid md:grid-cols-3 gap-8 px-theme backdrop-blur-md border border-border/40 rounded-xl px-10 py-8 shadow-2xl">
                 {INSTAGRAM_POSTS.map((url) => (
