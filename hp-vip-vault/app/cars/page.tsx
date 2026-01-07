@@ -65,9 +65,9 @@ const cars = data as Car[] | null;
           >
             {/* Image */}
             <div className="w-150 h-150 bg-background flex items-center justify-center overflow-hidden">
-              {car.pictures ? (
+              {car.pictures?.[0] ? (
                 <img
-                  src={car.pictures}
+                  src={car.pictures[0]}
                   alt={`${car.make ?? ""} ${car.model ?? ""}`}
                   className="w-full h-full object-cover"
                 />
