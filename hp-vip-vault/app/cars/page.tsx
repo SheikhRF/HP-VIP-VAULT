@@ -10,7 +10,7 @@ type Car = {
   car_id: number;
   make: string | null;
   model: string | null;
-  pictures: string | null;
+  pictures: string ;
 };
 
 export default async function CarsPage() {
@@ -59,13 +59,14 @@ const cars = data as Car[] | null;
       {/* Grid of cars – 1 per row on mobile, 2 per row on md+ */}
       <div className="grid grid-cols-3 md:grid-cols-4 gap-6 mt-4">
         {cars?.map((car) => (
-          <article
+          <Link
             key={car.car_id}
+            href={`/cars/${car.car_id}`}
             className="bg-card border border-border rounded-lg overflow-hidden flex flex-col"
           >
             {/* Image */}
             <div className="w-150 h-150 bg-background flex items-center justify-center overflow-hidden">
-              {car.pictures?.[0] ? (
+              {car.pictures[0] ? (
                 <img
                   src={car.pictures[0]}
                   alt={`${car.make ?? ""} ${car.model ?? ""}`}
@@ -85,7 +86,7 @@ const cars = data as Car[] | null;
                 {/* Add more info later (year, reg, status, etc.) */}
               </div>
             </div>
-          </article>
+          </Link>
         ))}
       </div>
     </main>

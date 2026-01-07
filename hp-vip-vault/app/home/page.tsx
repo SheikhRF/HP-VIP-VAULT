@@ -59,16 +59,16 @@ export default function Home(){
         <div className="w-full">
           <h2 className="text-4xl font-bold text-primary mb-4 text-center backdrop-blur-md border border-border/40 rounded-xl px-10 py-8 shadow-2xl">New deliveries</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 px-theme">
-        {cars?.map((car) => (
+        {cars?.slice(-4).map((car) => (
           <article
             key={car.car_id}
             className="aspect-video bg-card rounded-md border border-border flex flex-col overflow-hidden"
           >
             {/* Image */}
-            <div className="w-full h-[400] bg-background flex items-center justify-center overflow-hidden">
-              {car.pictures ? (
+            <div className="w-full h-full bg-background flex items-center justify-center overflow-hidden">
+              {car.pictures?.[0] ? (
                 <img
-                  src={car.pictures}
+                  src={car.pictures[0]}
                   alt={`${car.make ?? ""} ${car.model ?? ""}`}
                   className="w-full h-full object-cover"
                 />
