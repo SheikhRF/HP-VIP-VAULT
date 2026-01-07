@@ -180,16 +180,16 @@ export default function AddCarPage() {
       const fd = new FormData();
       fd.append("make", make.trim());
       fd.append("model", model.trim());
-      if (year.trim()) fd.append("year", year.trim());
       fd.append("trim", selectedTrim);
 
-      // photos[] (repeat key)
+      // add photos (must be File objects)
       photos.forEach((file) => fd.append("photos", file));
 
       const res = await fetch("/api/cars", {
-        method: "POST",
-        body: fd,
-      });
+      method: "POST",
+      body: fd,
+    });
+
 
       const data = await res.json().catch(() => ({}));
 
@@ -210,7 +210,7 @@ export default function AddCarPage() {
       <Navbar />
 
       <main className="bg-background text-foreground px-6 py-12 flex justify-center">
-        <div className="w-full max-w-2xl bg-card border border-border rounded-xl p-6">
+        <div className="w-full max-w-6xl bg-card border border-border rounded-xl p-6">
           <h1 className="text-2xl font-bold text-primary mb-2">Add a Car</h1>
           <p className="text-sm text-muted-foreground mb-6">
             Enter make/model/year, pick a trim, upload photos, then save.
@@ -331,9 +331,13 @@ export default function AddCarPage() {
                 type="file"
                 accept="image/*"
                 multiple
-                onChange={(e) => handlePhotoChange(e.target.files)}
-                className="block w-full text-sm"
-              />
+                onChange={(e) => {
+                const files = e.target.files;
+                if (!files) return;
+                setPhotos(Array.from(files));
+                }}
+            />
+
 
               {photos.length > 0 && (
                 <p className="text-sm text-muted-foreground">
