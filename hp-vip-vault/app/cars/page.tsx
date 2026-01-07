@@ -22,6 +22,7 @@ export default async function CarsPage() {
 const cars = data as Car[] | null;
 
 
+
   if (error) {
     console.error(error);
   }
@@ -52,18 +53,18 @@ const cars = data as Car[] | null;
 
       {/* Empty state */}
       {!error && (!cars || cars.length === 0) && (
-        <p className="text-muted">No cars yet. Click “Add Car” to create one.</p>
+        <p className="text-muted">No cars yet. Click “Add Car”.</p>
       )}
 
       {/* Grid of cars – 1 per row on mobile, 2 per row on md+ */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+      <div className="grid grid-cols-3 md:grid-cols-4 gap-6 mt-4">
         {cars?.map((car) => (
           <article
             key={car.car_id}
             className="bg-card border border-border rounded-lg overflow-hidden flex flex-col"
           >
             {/* Image */}
-            <div className="w-full h-48 bg-background flex items-center justify-center overflow-hidden">
+            <div className="w-150 h-150 bg-background flex items-center justify-center overflow-hidden">
               {car.pictures ? (
                 <img
                   src={car.pictures}
