@@ -10,8 +10,8 @@ export const dynamic = "force-dynamic";
 
 
 const INSTAGRAM_POSTS = [
-    "https://www.instagram.com/p/DLf_0oPofmF/?utm_source=ig_embed&amp;utm_campaign=loading",
-    "https://www.instagram.com/p/DR2v02BjWye/?utm_source=ig_embed&amp;utm_campaign=loading",
+    "https://www.instagram.com/p/DSsM-QnjIxY/?utm_source=ig_embed&amp;utm_campaign=loading",
+    "https://www.instagram.com/p/DL-rdZ-on-5/?utm_source=ig_embed&amp;utm_campaign=loading",
     "https://www.instagram.com/p/DPR2b3sAJnc/?utm_source=ig_embed&amp;utm_campaign=loading"
 ]
 

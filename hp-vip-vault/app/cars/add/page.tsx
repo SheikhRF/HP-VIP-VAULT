@@ -326,8 +326,8 @@ export default function AddCarPage() {
             {/* Step 4: Photos */}
             <section className="space-y-3">
               <h2 className="font-semibold">3) Upload photos</h2>
-
               <input
+              className="bg-card rounded-md px-3 py-2 outline-orange-500 border border-border"
                 type="file"
                 accept="image/*"
                 multiple
@@ -337,6 +337,7 @@ export default function AddCarPage() {
                 setPhotos(Array.from(files));
                 }}
             />
+
 
 
               {photos.length > 0 && (
