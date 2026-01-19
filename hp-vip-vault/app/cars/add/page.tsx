@@ -45,7 +45,11 @@ const SPEC_KEYS: { label: string; key: string }[] = [
 export default function AddCarPage() {
   const router = useRouter();
 
-  // inputs
+  // DVLA + DB fields
+  const [registration, setRegistration] = useState("");
+  const [location, setLocation] = useState("");
+
+  // trims flow fields
   const [make, setMake] = useState("");
   const [model, setModel] = useState("");
   const [year, setYear] = useState("");
@@ -60,7 +64,7 @@ export default function AddCarPage() {
   // photos
   const [photos, setPhotos] = useState<File[]>([]);
 
-  // ui states
+  // ui
   const [loadingTrims, setLoadingTrims] = useState(false);
   const [loadingDetails, setLoadingDetails] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -68,10 +72,13 @@ export default function AddCarPage() {
 
   const canFindTrims = make.trim() && model.trim();
   const canPreviewDetails = make.trim() && model.trim() && selectedTrim.trim();
-  const canSubmit = make.trim() && model.trim() && selectedTrim.trim() && photos.length > 0;
+  const canSubmit =
+    make.trim() &&
+    model.trim() &&
+    selectedTrim.trim() &&
+    photos.length > 0; // registration/location optional per your route
 
   const trimOptions = useMemo(() => {
-    // build nicer dropdown labels (serie + trim + years)
     return trims.map((t, idx) => {
       const years =
         t.generation_year_begin || t.generation_year_end
@@ -79,10 +86,13 @@ export default function AddCarPage() {
           : "";
       const serie = t.serie ? `${t.serie} — ` : "";
       const label = `${serie}${t.trim}${years ? ` (${years})` : ""}`;
-      // Keep value as the exact trim string required by details endpoint
       return { key: `${t.trim}-${idx}`, value: t.trim, label };
     });
   }, [trims]);
+
+  function normalizeReg(s: string) {
+    return s.toUpperCase().replace(/\s+/g, "");
+  }
 
   async function handleFindTrims() {
     setErrorMsg("");
@@ -153,7 +163,6 @@ export default function AddCarPage() {
         return;
       }
 
-      // We expect your API route to return { ok:true, top: {...} }
       setDetailsTop(data.top ?? null);
     } finally {
       setLoadingDetails(false);
@@ -178,18 +187,26 @@ export default function AddCarPage() {
     setSubmitting(true);
     try {
       const fd = new FormData();
+
+      // required by your /api/cars route
       fd.append("make", make.trim());
       fd.append("model", model.trim());
       fd.append("trim", selectedTrim);
 
-      // add photos (must be File objects)
+      // optional but now useful (DVLA)
+      const reg = normalizeReg(registration.trim());
+      if (reg) fd.append("registration", reg);
+
+      // optional unless your DB enforces it
+      if (location.trim()) fd.append("location", location.trim());
+
+      // photos
       photos.forEach((file) => fd.append("photos", file));
 
       const res = await fetch("/api/cars", {
-      method: "POST",
-      body: fd,
-    });
-
+        method: "POST",
+        body: fd,
+      });
 
       const data = await res.json().catch(() => ({}));
 
@@ -210,10 +227,10 @@ export default function AddCarPage() {
       <Navbar />
 
       <main className="bg-background text-foreground px-6 py-12 flex justify-center">
-        <div className="w-full max-w-6xl bg-card border border-border rounded-xl p-6">
+        <div className="w-full max-w-2xl bg-card border border-border rounded-xl p-6">
           <h1 className="text-2xl font-bold text-primary mb-2">Add a Car</h1>
           <p className="text-sm text-muted-foreground mb-6">
-            Enter make/model/year, pick a trim, upload photos, then save.
+            Upload photos, select the correct trim, and (optionally) provide the reg for DVLA status.
           </p>
 
           {errorMsg && (
@@ -223,9 +240,38 @@ export default function AddCarPage() {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-6">
+            {/* DVLA / meta */}
+            <section className="space-y-3">
+              <h2 className="font-semibold">Registration & Location</h2>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm mb-1">Registration (optional)</label>
+                  <input
+                    value={registration}
+                    onChange={(e) => setRegistration(e.target.value)}
+                    className="w-full bg-input border border-border rounded-md px-3 py-2 outline-none"
+                    placeholder="AB12CDE"
+                    maxLength={10}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm mb-1">Location (optional)</label>
+                  <input
+                    value={location}
+                    onChange={(e) => setLocation(e.target.value)}
+                    className="w-full bg-input border border-border rounded-md px-3 py-2 outline-none"
+                    placeholder="London"
+                    maxLength={30}
+                  />
+                </div>
+              </div>
+            </section>
+
             {/* Step 1: Inputs */}
             <section className="space-y-3">
-              <h2 className="font-semibold">1) Car basics</h2>
+              <h2 className="font-semibold">1) Find trims</h2>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 <div>
@@ -326,19 +372,14 @@ export default function AddCarPage() {
             {/* Step 4: Photos */}
             <section className="space-y-3">
               <h2 className="font-semibold">3) Upload photos</h2>
+
               <input
-              className="bg-card rounded-md px-3 py-2 outline-orange-500 border border-border"
                 type="file"
                 accept="image/*"
                 multiple
-                onChange={(e) => {
-                const files = e.target.files;
-                if (!files) return;
-                setPhotos(Array.from(files));
-                }}
-            />
-
-
+                onChange={(e) => handlePhotoChange(e.target.files)}
+                className="block w-full text-sm"
+              />
 
               {photos.length > 0 && (
                 <p className="text-sm text-muted-foreground">

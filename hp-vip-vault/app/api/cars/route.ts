@@ -30,6 +30,10 @@ const SPEC_MAP: Record<string, string> = {
   number_of_seats: "Number of seater",
 };
 
+function normalizeReg(input: string) {
+  return input.toUpperCase().replace(/\s+/g, "");
+}
+
 async function fetchTopDetails(make: string, model: string, trim: string) {
   const key = process.env.API_NINJAS_KEY;
   if (!key) throw new Error("Missing API_NINJAS_KEY");
@@ -51,6 +55,34 @@ async function fetchTopDetails(make: string, model: string, trim: string) {
   return data[0];
 }
 
+// DVLA helper
+async function fetchDVLA(registrationNumber: string) {
+  const key = process.env.DVLA_VES_KEY;
+  if (!key) throw new Error("Missing DVLA_VES_KEY");
+
+  const res = await fetch(
+    "https://driver-vehicle-licensing.api.gov.uk/vehicle-enquiry/v1/vehicles",
+    {
+      method: "POST",
+      headers: {
+        "x-api-key": key,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ registrationNumber }),
+      cache: "no-store",
+    }
+  );
+
+  const text = await res.text();
+
+  if (!res.ok) {
+    // DVLA returns JSON errors but to be safe we return raw text too
+    throw new Error(`DVLA error (${res.status}): ${text}`);
+  }
+
+  return JSON.parse(text);
+}
+
 export async function POST(req: Request) {
   const form = await req.formData();
 
@@ -65,6 +97,12 @@ export async function POST(req: Request) {
     );
   }
 
+  const registrationRaw = String(form.get("registration") ?? "").trim();
+  const locationRaw = String(form.get("location") ?? "").trim();
+
+  const registration = registrationRaw ? normalizeReg(registrationRaw) : null;
+  const location = locationRaw || null;
+
   const files = form.getAll("photos").filter((v): v is File => v instanceof File);
   if (files.length === 0) {
     return NextResponse.json(
@@ -78,13 +116,12 @@ export async function POST(req: Request) {
   const specs: Record<string, string> = top.specifications ?? {};
 
   // 2) upload photos to Supabase Storage
-  const bucket = "car-images"; 
+  const bucket = "car-images";
   const uploadedUrls: string[] = [];
 
   for (let i = 0; i < files.length; i++) {
     const file = files[i];
 
-    // simple guard
     if (file.size > 15 * 1024 * 1024) {
       return NextResponse.json(
         { ok: false, error: `Photo ${i + 1} is too large (max 15MB)` },
@@ -113,11 +150,13 @@ export async function POST(req: Request) {
     uploadedUrls.push(data.publicUrl);
   }
 
-  // 3) build DB row
+  // 3) build DB row (specs + photos)
   const row: Record<string, any> = {
     make: top.make ?? make,
     model: top.model ?? model,
-    pictures: uploadedUrls ?? null,
+    pictures: uploadedUrls, //  text[] column
+    registration,           // can be null
+    location,               // can be null 
   };
 
   for (const [dbField, apiKey] of Object.entries(SPEC_MAP)) {
@@ -128,8 +167,21 @@ export async function POST(req: Request) {
   row.number_of_gears = parseInt(row.number_of_gears, 10) || null;
   row.number_of_seats = parseInt(row.number_of_seats, 10) || null;
 
-  row.registration = String(form.get("registration")).trim().toUpperCase().replace(/\s+/g, "");
-  row.location = String(form.get("location")).trim();
+  // 4) DVLA enrichment (only if registration provided)
+  if (registration) {
+    try {
+      const dvla = await fetchDVLA(registration);
+
+      // Only the DVLA fields you said you want:
+      row.year_of_manufacture = dvla.yearOfManufacture ?? null;
+      row.mot = dvla.motStatus ?? null;
+      row.tax_status = dvla.taxStatus ?? null;
+      row.tax_due_date = dvla.artEndDate ?? null;
+    } catch (e) {
+      // Don’t fail the entire upload if DVLA is down / reg invalid
+      console.error("DVLA lookup failed:", e);
+    }
+  }
 
   const { data: inserted, error } = await supabase
     .from("cars")
@@ -138,8 +190,16 @@ export async function POST(req: Request) {
     .single();
 
   if (error) {
-    return NextResponse.json({ ok: false, error: error.message }, { status: 400 });
+    return NextResponse.json(
+      { ok: false, error: error.message },
+      { status: 400 }
+    );
   }
 
-  return NextResponse.json({ ok: true, car_id: inserted.car_id, pictures: uploadedUrls });
+  return NextResponse.json({
+    ok: true,
+    car_id: inserted.car_id,
+    pictures: uploadedUrls,
+    dvla_enriched: !!registration,
+  });
 }
