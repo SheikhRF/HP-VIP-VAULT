@@ -100,7 +100,7 @@ export default async function CarDetailPage({
               </p>
             </div>
             <Link
-             href="/trips/add"
+             href={`/trips/add?car_id=${carId}`}
               className="bg-secondary text-secondary-foreground px-4 py-2 rounded-md font-semibold hover:opacity-90 transition flex items-center justify-center gap-2 w-full sm:w-auto"
               >
               <Plus size={18} />
