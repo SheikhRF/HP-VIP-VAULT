@@ -1,8 +1,8 @@
-"use client";
 
-import Navbar from "@/components/navbar";
+"use client";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { ChevronLeft } from "lucide-react";
 
 type TrimOption = {
   make: string;
@@ -224,8 +224,15 @@ export default function AddCarPage() {
 
   return (
     <>
-      <Navbar />
-
+      <button
+      onClick={() => router.back()}
+      className="group flex items-center gap-2 text-gray-500 hover:text-orange-500 transition-colors duration-200 uppercase text-[10px] font-black tracking-[0.2em]"
+    >
+      <div className="flex items-center justify-center w-8 h-8 rounded-full bg-[#1a1a1a] border border-gray-800 group-hover:border-orange-500 group-hover:bg-orange-500 group-hover:text-black transition-all duration-200">
+        <ChevronLeft size={16} />
+      </div>
+      <span>Back to Vault</span>
+    </button>
       <main className="bg-background text-foreground px-6 py-12 flex justify-center">
         <div className="w-full max-w-2xl bg-card border border-border rounded-xl p-6">
           <h1 className="text-2xl font-bold text-primary mb-2">Add a Car</h1>
