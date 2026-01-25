@@ -39,10 +39,10 @@ export default function Home(){
   return(
     <>
       <Navbar />
-      <main className="flex min-h-screen flex-col items-center bg-background text-foreground py 24 px-4">
+      <main className="flex min-h-screen flex-col items-center bg-background text-foreground py-24 px-4">
         {/*intro section */}
         <div style = {{marginTop: "100px" }}  className=" max-w-5x1 mb-12">
-          <h1 className="text-5xl font-bold text-primary mb-4 text-center backdrop-blur-md border border-border/40 rounded-xl px-10 py-8 shadow-2xl">Welcome to the Vault {firstName} </h1>
+          <h1 className="text-5xl font-bold text-primary mb-4 text-center backdrop-blur-md border border-border/40 rounded-xl px-10 py-8 shadow-2xl">Welcome to the Vault, {firstName} </h1>
         </div>
 
         {/* Instagram Section */}
