@@ -1,5 +1,4 @@
 import Navbar from "@/components/navbar";
-import { InstagramEmbed } from "@/components/InstagramEmbed";
 import { createClient } from "@supabase/supabase-js";
 import {getFirstName} from "@/lib/user/claims";
 import InstagramWidget from "@/components/InstagramWidget";
@@ -10,11 +9,6 @@ const supabase = createClient(supabaseUrl, supabaseAnonKey);
 export const dynamic = "force-dynamic";
 
 
-const INSTAGRAM_POSTS = [
-    "https://www.instagram.com/p/DSsM-QnjIxY/?utm_source=ig_embed&amp;utm_campaign=loading",
-    "https://www.instagram.com/p/DL-rdZ-on-5/?utm_source=ig_embed&amp;utm_campaign=loading",
-    "https://www.instagram.com/p/DPR2b3sAJnc/?utm_source=ig_embed&amp;utm_campaign=loading"
-]
 
 type Car = {
   car_id: number;
@@ -49,9 +43,6 @@ export default function Home(){
         {/* Instagram Section */}
           <div className="w-full max-w-5x1 mb-12">
             <h2 className="text-4xl font-bold text-primary mb-4 text-center backdrop-blur-md border border-border/40 rounded-xl px-10 py-8 shadow-2xl ">Instagram</h2>
-                {/* {INSTAGRAM_POSTS.map((url) => (
-                <InstagramEmbed key={url} url={url} />
-            ))} */}
                 <InstagramWidget />
           </div>
           
