@@ -35,7 +35,7 @@ export default async function Navbar() {
                                 <NavigationMenuItem key={item}>
                                     <NavigationMenuLink asChild>
                                         <Link
-                                            href={item === "Home" ? "/" : `/${item.toLowerCase()}`}
+                                            href={`/${item.toLowerCase()}`}
                                             className={`
                                                 relative px-4 py-2 text-[10px] font-black uppercase tracking-[0.2em] transition-all duration-300
                                                 ${isSpecial 
