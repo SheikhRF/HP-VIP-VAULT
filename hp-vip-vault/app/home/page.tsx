@@ -2,6 +2,7 @@ import Navbar from "@/components/navbar";
 import { InstagramEmbed } from "@/components/InstagramEmbed";
 import { createClient } from "@supabase/supabase-js";
 import {getFirstName} from "@/lib/user/claims";
+import InstagramWidget from "@/components/InstagramWidget";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -48,12 +49,12 @@ export default function Home(){
         {/* Instagram Section */}
           <div className="w-full max-w-5x1 mb-12">
             <h2 className="text-4xl font-bold text-primary mb-4 text-center backdrop-blur-md border border-border/40 rounded-xl px-10 py-8 shadow-2xl ">Instagram</h2>
-              <div className="grid md:grid-cols-3 gap-8 px-theme backdrop-blur-md border border-border/40 rounded-xl px-10 py-8 shadow-2xl">
-                {INSTAGRAM_POSTS.map((url) => (
+                {/* {INSTAGRAM_POSTS.map((url) => (
                 <InstagramEmbed key={url} url={url} />
-            ))}
+            ))} */}
+                <InstagramWidget />
           </div>
-          </div>
+          
         
         {/* New Deliveries Section */}
         <div className="w-full">
