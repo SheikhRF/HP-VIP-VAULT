@@ -18,7 +18,7 @@ export default async function ContactPage() {
   return (
     <>
       <Navbar />
-      <main className="min-h-screen bg-black text-white flex items-center justify-center p-6">
+      <main className="min-h-screen bg-background text-white flex items-center justify-center p-6">
         <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
           
           {/* Left Column: Connection Intel */}

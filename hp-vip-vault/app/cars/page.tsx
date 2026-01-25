@@ -42,7 +42,7 @@ export default async function CarsPage() {
               The <span className="text-orange-500">Collection</span>
             </h1>
             <p className="text-[10px] text-gray-500 font-black uppercase tracking-[0.4em] ml-1">
-              Live Asset Inventory • HP.VIP
+              Live Car Inventory • HP.VIP
             </p>
           </div>
 

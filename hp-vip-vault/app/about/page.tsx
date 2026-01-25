@@ -5,7 +5,7 @@ export default function AboutPage() {
   return (
     <>
       <Navbar />
-      <main className="min-h-screen bg-black text-white flex flex-col items-center">
+      <main className="min-h-screen bg-background text-white flex flex-col items-center">
         
         {/* Header Section */}
         <section className="w-full max-w-7xl pt-32 pb-16 px-6 text-center">
