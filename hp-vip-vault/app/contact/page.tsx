@@ -100,12 +100,7 @@ export default async function ContactPage() {
           </div>
 
         </div>
-        {/* System Footer */}
-        <footer className="w-full py-12 border-t border-gray-900 text-center">
-          <p className="text-[9px] text-gray-800 font-black uppercase tracking-[0.6em]">
-            HORSEPOWER.VIP 2026. 
-          </p>
-        </footer>
+
       </main>
     </>
   );
