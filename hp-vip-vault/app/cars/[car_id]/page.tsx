@@ -2,6 +2,7 @@ import Navbar from "@/components/navbar";
 import Image from "next/image";
 import Link from "next/link";
 import { createClient } from "@supabase/supabase-js";
+import { Plus } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -67,7 +68,7 @@ export default async function CarDetailPage({
           <div className="max-w-4xl mx-auto bg-card border border-border rounded-xl p-6">
             <h1 className="text-2xl font-bold text-primary">Car not found</h1>
             <p className="text-muted-foreground mt-2">
-              That car doesn’t exist (or you don’t have access).
+              That car doesn’t exist .
             </p>
             <Link href="/cars" className="inline-block mt-4 text-primary hover:opacity-90">
               ← Back to cars
@@ -98,6 +99,13 @@ export default async function CarDetailPage({
                 {car.max_speed ? ` • ${car.max_speed}` : ""}
               </p>
             </div>
+            <Link
+             href="/trips/add"
+              className="bg-secondary text-secondary-foreground px-4 py-2 rounded-md font-semibold hover:opacity-90 transition flex items-center justify-center gap-2 w-full sm:w-auto"
+              >
+              <Plus size={18} />
+              <span>Add trip</span>
+            </Link>
 
             <Link
               href="/cars"
@@ -105,6 +113,7 @@ export default async function CarDetailPage({
             >
               Back
             </Link>
+            
           </div>
 
           <div className="">
