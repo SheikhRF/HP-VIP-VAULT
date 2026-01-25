@@ -2,13 +2,12 @@
 
 import Link from "next/link";
 import Hyperspeed from "@/components/Hyperspeed";
-  
+import { Unlock } from "lucide-react";
 
 export default function LandingPage() {
   return (
-    <div className="relative h-screen w-screen overflow-hidden">
-
-      {/* Background Effect */}
+    <div className="relative h-screen w-screen overflow-hidden bg-black">
+      {/* Background Effect - Preserved exactly as requested */}
       <Hyperspeed
         effectOptions={{
           onSpeedUp: () => {},
@@ -49,31 +48,50 @@ export default function LandingPage() {
         }}
       />
 
-      {/* UI Overlay */}
-      <div className="absolute inset-0 flex items-start justify-center pt-40 pointer-events-none">
+      {/* Futuristic UI Overlay */}
+      <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+        
 
         <Link
           href="/home"
           className="
+            group
             pointer-events-auto
-            text-center
-            backdrop-blur-md
-            border border-border/40
-            rounded-xl
-            px-10 py-6
-            shadow-2xl
-            justify-center
-            items-center
-            flex
-            hover:bg-white/10
-            transition
+            relative
+            flex flex-col items-center justify-center
+            transition-all duration-500
           "
         >
-          <h1 className="text-5xl font-bold text-primary mb-6 drop-shadow-lg justify-center items-center flex pt-5">
-          Enter the Vault
-        </h1>
+          {/* Animated Glow Ring */}
+          <div className="absolute inset-0 rounded-full bg-orange-500/20 blur-2xl group-hover:bg-orange-500/40 transition-all duration-500" />
+          
+          {/* The Button Body */}
+          <div className="
+            relative
+            backdrop-blur-xl
+            bg-black/40
+            border border-white/10
+            group-hover:border-orange-500/50
+            rounded-full
+            p-8 md:p-12
+            flex flex-col items-center justify-center
+            shadow-[0_0_50px_rgba(0,0,0,0.5)]
+            transition-all duration-500
+            hover:scale-105
+          ">
+            <Unlock 
+                className="text-orange-500 mb-4 group-hover:scale-110 group-hover:drop-shadow-[0_0_10px_rgba(249,115,22,0.8)] transition-all" 
+                size={48} 
+                strokeWidth={1.5}
+            />
+            
+            <h1 className="text-xl md:text-2xl font-black italic tracking-[0.2em] text-white uppercase group-hover:text-orange-500 transition-colors">
+             Unlock <span className="text-orange-500 group-hover:text-white">Vault</span>
+            </h1>
+          </div>
         </Link>
       </div>
+
     </div>
   );
 }
