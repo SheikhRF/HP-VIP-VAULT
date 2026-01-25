@@ -1,7 +1,8 @@
 import { auth } from "@clerk/nextjs/server";
 
 export type AppSessionClaims = {
-  FirstName?: string; 
+  FirstName?: string;
+  Role?: "admin" | "user"; 
 };
 
 
@@ -15,4 +16,9 @@ export async function getAppSessionClaims(): Promise<AppSessionClaims | null> {
 export async function getFirstName(fallback = "User"): Promise<string> {
   const claims = await getAppSessionClaims();
   return claims?.FirstName || fallback;
+}
+
+export async function checkIsAdmin(): Promise<boolean> {
+  const claims = await getAppSessionClaims();
+  return claims?.Role === 'admin';
 }
