@@ -1,20 +1,16 @@
-
 "use client";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, Camera, Search, Database, Gauge, PoundSterling } from "lucide-react";
 
 type TrimOption = {
   make: string;
   model: string;
   generation?: string | null;
-  generation_year_begin?: string | number | null;
-  generation_year_end?: string | number | null;
   serie?: string | null;
   trim: string;
-  trim_start_production_year?: number | null;
-  trim_end_production_year?: number | null;
-  car_type?: string | null;
+  generation_year_begin?: string | number | null;
+  generation_year_end?: string | number | null;
 };
 
 type DetailsResponseTop = {
@@ -24,388 +20,197 @@ type DetailsResponseTop = {
   specifications?: Record<string, string>;
 };
 
-const SPEC_KEYS: { label: string; key: string }[] = [
-  { label: "Acceleration (0-100)", key: "Acceleration (0-100 km/h)" },
-  { label: "Body type", key: "Body type" },
-  { label: "Capacity", key: "Capacity" },
-  { label: "Curb weight", key: "Curb weight" },
-  { label: "Cylinder layout", key: "Cylinder layout" },
-  { label: "Drive wheels", key: "Drive wheels" },
-  { label: "Engine power", key: "Engine power" },
-  { label: "Fuel tank capacity", key: "Fuel tank capacity" },
-  { label: "Gearbox type", key: "Gearbox type" },
-  { label: "Max speed", key: "Max speed" },
-  { label: "Maximum torque", key: "Maximum torque" },
-  { label: "Max trunk capacity", key: "Max trunk capacity" },
-  { label: "Number of cylinders", key: "Number of cylinders" },
-  { label: "Number of gear", key: "Number of gear" },
-  { label: "Number of seater", key: "Number of seater" },
+const SPEC_KEYS = [
+  { label: "0-100 km/h", key: "Acceleration (0-100 km/h)" },
+  { label: "Body Type", key: "Body type" },
+  { label: "Power", key: "Engine power" },
+  { label: "Max Speed", key: "Max speed" },
+  { label: "Gearbox", key: "Gearbox type" },
+  { label: "Drive", key: "Drive wheels" },
 ];
 
 export default function AddCarPage() {
   const router = useRouter();
 
-  // DVLA + DB fields
+  // Core Fields
   const [registration, setRegistration] = useState("");
   const [location, setLocation] = useState("");
+  const [price, setPrice] = useState("");
+  const [mileage, setMileage] = useState("");
 
-  // trims flow fields
+  // Trims Flow
   const [make, setMake] = useState("");
   const [model, setModel] = useState("");
   const [year, setYear] = useState("");
-
-  // trims
   const [trims, setTrims] = useState<TrimOption[]>([]);
-  const [selectedTrim, setSelectedTrim] = useState<string>("");
+  const [selectedTrim, setSelectedTrim] = useState("");
 
-  // details preview
+  // UI State
   const [detailsTop, setDetailsTop] = useState<DetailsResponseTop | null>(null);
-
-  // photos
   const [photos, setPhotos] = useState<File[]>([]);
-
-  // ui
   const [loadingTrims, setLoadingTrims] = useState(false);
   const [loadingDetails, setLoadingDetails] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
 
   const canFindTrims = make.trim() && model.trim();
-  const canPreviewDetails = make.trim() && model.trim() && selectedTrim.trim();
-  const canSubmit =
-    make.trim() &&
-    model.trim() &&
-    selectedTrim.trim() &&
-    photos.length > 0; // registration/location optional per your route
+  const canSubmit = make.trim() && model.trim() && selectedTrim.trim() && photos.length > 0;
 
   const trimOptions = useMemo(() => {
     return trims.map((t, idx) => {
-      const years =
-        t.generation_year_begin || t.generation_year_end
-          ? `${t.generation_year_begin ?? "?"}-${t.generation_year_end ?? "?"}`
-          : "";
-      const serie = t.serie ? `${t.serie} — ` : "";
-      const label = `${serie}${t.trim}${years ? ` (${years})` : ""}`;
+      const years = t.generation_year_begin ? ` (${t.generation_year_begin}-${t.generation_year_end ?? "?"})` : "";
+      const label = `${t.serie ? `${t.serie} — ` : ""}${t.trim}${years}`;
       return { key: `${t.trim}-${idx}`, value: t.trim, label };
     });
   }, [trims]);
 
-  function normalizeReg(s: string) {
-    return s.toUpperCase().replace(/\s+/g, "");
-  }
-
   async function handleFindTrims() {
     setErrorMsg("");
-    setDetailsTop(null);
-    setSelectedTrim("");
     setTrims([]);
-
-    if (!canFindTrims) {
-      setErrorMsg("Please enter make and model first.");
-      return;
-    }
-
     setLoadingTrims(true);
     try {
-      const params = new URLSearchParams();
-      params.set("make", make.trim());
-      params.set("model", model.trim());
+      const params = new URLSearchParams({ make: make.trim(), model: model.trim() });
       if (year.trim()) params.set("year", year.trim());
-
-      const res = await fetch(`/api/cars/trims?${params.toString()}`, {
-        cache: "no-store",
-      });
-
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        setErrorMsg(data.error ?? "Failed to fetch trims");
-        return;
-      }
-
-      const list = Array.isArray(data.trims) ? (data.trims as TrimOption[]) : [];
-      if (list.length === 0) {
-        setErrorMsg("No trims found for that make/model.");
-        return;
-      }
-
-      setTrims(list);
-    } finally {
-      setLoadingTrims(false);
-    }
+      const res = await fetch(`/api/cars/trims?${params.toString()}`);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Fetch failed");
+      setTrims(data.trims || []);
+    } catch (err: any) { setErrorMsg(err.message); }
+    finally { setLoadingTrims(false); }
   }
 
   async function handlePreviewDetails() {
-    setErrorMsg("");
-    setDetailsTop(null);
-
-    if (!canPreviewDetails) {
-      setErrorMsg("Select a trim first.");
-      return;
-    }
-
     setLoadingDetails(true);
     try {
       const res = await fetch("/api/cars/details", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        cache: "no-store",
-        body: JSON.stringify({
-          make: make.trim(),
-          model: model.trim(),
-          year: year.trim() || null,
-          trim: selectedTrim,
-        }),
+        body: JSON.stringify({ make, model, trim: selectedTrim, year: year || null }),
       });
-
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        setErrorMsg(data.error ?? "Failed to fetch details");
-        return;
-      }
-
-      setDetailsTop(data.top ?? null);
-    } finally {
-      setLoadingDetails(false);
-    }
-  }
-
-  function handlePhotoChange(files: FileList | null) {
-    setErrorMsg("");
-    if (!files) return;
-    setPhotos(Array.from(files));
+      const data = await res.json();
+      setDetailsTop(data.top || null);
+    } catch { setErrorMsg("Failed to load specs"); }
+    finally { setLoadingDetails(false); }
   }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setErrorMsg("");
-
-    if (!canSubmit) {
-      setErrorMsg("Please fill make/model, choose a trim, and upload at least 1 photo.");
-      return;
-    }
-
     setSubmitting(true);
     try {
       const fd = new FormData();
-
-      // required by your /api/cars route
-      fd.append("make", make.trim());
-      fd.append("model", model.trim());
+      fd.append("make", make);
+      fd.append("model", model);
       fd.append("trim", selectedTrim);
+      if (registration) fd.append("registration", registration.toUpperCase().replace(/\s/g, ""));
+      if (location) fd.append("location", location);
+      if (price) fd.append("price", price);
+      if (mileage) fd.append("mileage", mileage);
+      photos.forEach(p => fd.append("photos", p));
 
-      // optional but now useful (DVLA)
-      const reg = normalizeReg(registration.trim());
-      if (reg) fd.append("registration", reg);
-
-      // optional unless your DB enforces it
-      if (location.trim()) fd.append("location", location.trim());
-
-      // photos
-      photos.forEach((file) => fd.append("photos", file));
-
-      const res = await fetch("/api/cars", {
-        method: "POST",
-        body: fd,
-      });
-
-      const data = await res.json().catch(() => ({}));
-
-      if (!res.ok) {
-        setErrorMsg(data.error ?? "Failed to add car");
-        return;
-      }
-
+      const res = await fetch("/api/cars", { method: "POST", body: fd });
+      if (!res.ok) throw new Error("Submission failed");
       router.push("/cars");
       router.refresh();
-    } finally {
-      setSubmitting(false);
-    }
+    } catch (err: any) { setErrorMsg(err.message); setSubmitting(false); }
   }
 
   return (
-    <>
-      <button
-      onClick={() => router.back()}
-      className="group flex items-center gap-2 text-gray-500 hover:text-orange-500 transition-colors duration-200 uppercase text-[10px] font-black tracking-[0.2em]"
-    >
-      <div className="flex items-center justify-center w-8 h-8 rounded-full bg-[#1a1a1a] border border-gray-800 group-hover:border-orange-500 group-hover:bg-orange-500 group-hover:text-black transition-all duration-200">
-        <ChevronLeft size={16} />
-      </div>
-      <span>Back to Vault</span>
-    </button>
-      <main className="bg-background text-foreground px-6 py-12 flex justify-center">
-        <div className="w-full max-w-2xl bg-card border border-border rounded-xl p-6">
-          <h1 className="text-2xl font-bold text-primary mb-2">Add a Car</h1>
-          <p className="text-sm text-muted-foreground mb-6">
-            Upload photos, select the correct trim, and (optionally) provide the reg for DVLA status.
-          </p>
+    <main className="min-h-screen bg-background text-foreground p-6 flex flex-col items-center">
+      <div className="w-full max-w-3xl space-y-6">
+        {/* Back Button */}
+        <button onClick={() => router.back()} className="group flex items-center gap-2 text-gray-500 hover:text-primary transition-all uppercase text-[10px] font-black tracking-widest">
+          <div className="flex items-center justify-center w-8 h-8 rounded-full bg-card border border-border group-hover:border-primary transition-all">
+            <ChevronLeft size={16} />
+          </div>
+          <span>Cancel Session</span>
+        </button>
 
-          {errorMsg && (
-            <div className="bg-red-500/20 border border-red-500 px-3 py-2 rounded-md mb-4 text-sm">
-              {errorMsg}
-            </div>
-          )}
+        <div className="bg-card border border-border rounded-[2.5rem] p-8 md:p-12 shadow-2xl">
+          <header className="mb-10">
+            <h1 className="text-4xl font-black italic tracking-tighter uppercase text-white">
+              Car <span className="text-primary">Entry</span>
+            </h1>
+            <p className="text-[10px] text-gray-500 uppercase tracking-[0.4em] font-bold">New Vault Entry</p>
+          </header>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* DVLA / meta */}
-            <section className="space-y-3">
-              <h2 className="font-semibold">Registration & Location</h2>
+          {errorMsg && <div className="bg-red-500/10 border border-red-500 text-red-500 p-4 rounded-2xl mb-6 text-xs font-bold uppercase">{errorMsg}</div>}
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-sm mb-1">Registration (optional)</label>
-                  <input
-                    value={registration}
-                    onChange={(e) => setRegistration(e.target.value)}
-                    className="w-full bg-input border border-border rounded-md px-3 py-2 outline-none"
-                    placeholder="AB12CDE"
-                    maxLength={10}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm mb-1">Location (optional)</label>
-                  <input
-                    value={location}
-                    onChange={(e) => setLocation(e.target.value)}
-                    className="w-full bg-input border border-border rounded-md px-3 py-2 outline-none"
-                    placeholder="London"
-                    maxLength={30}
-                  />
-                </div>
+          <form onSubmit={handleSubmit} className="space-y-10">
+            
+            {/* 1. Identity & Trim */}
+            <section className="space-y-6">
+              <h2 className="text-xs font-black uppercase tracking-widest text-primary flex items-center gap-2">
+                <Search size={14} /> 01. Technical Identity
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <input placeholder="MAKE (e.g. Porsche)" className="bg-background border border-border rounded-2xl px-4 py-3 text-sm outline-none focus:border-primary" value={make} onChange={e => setMake(e.target.value)} />
+                <input placeholder="MODEL (e.g. 911)" className="bg-background border border-border rounded-2xl px-4 py-3 text-sm outline-none focus:border-primary" value={model} onChange={e => setModel(e.target.value)} />
+                <input placeholder="YEAR" className="bg-background border border-border rounded-2xl px-4 py-3 text-sm outline-none focus:border-primary" value={year} onChange={e => setYear(e.target.value)} />
               </div>
-            </section>
-
-            {/* Step 1: Inputs */}
-            <section className="space-y-3">
-              <h2 className="font-semibold">1) Find trims</h2>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                <div>
-                  <label className="block text-sm mb-1">Make</label>
-                  <input
-                    value={make}
-                    onChange={(e) => setMake(e.target.value)}
-                    className="w-full bg-input border border-border rounded-md px-3 py-2 outline-none"
-                    placeholder="Ferrari"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm mb-1">Model</label>
-                  <input
-                    value={model}
-                    onChange={(e) => setModel(e.target.value)}
-                    className="w-full bg-input border border-border rounded-md px-3 py-2 outline-none"
-                    placeholder="458"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm mb-1">Year (optional)</label>
-                  <input
-                    value={year}
-                    onChange={(e) => setYear(e.target.value)}
-                    className="w-full bg-input border border-border rounded-md px-3 py-2 outline-none"
-                    placeholder="2014"
-                    inputMode="numeric"
-                  />
-                </div>
-              </div>
-
-              <button
-                type="button"
-                onClick={handleFindTrims}
-                disabled={loadingTrims || !canFindTrims}
-                className="bg-primary text-primary-foreground rounded-md px-4 py-2 font-semibold hover:opacity-90 transition disabled:opacity-50"
-              >
-                {loadingTrims ? "Finding trims..." : "Find trims"}
+              <button type="button" onClick={handleFindTrims} disabled={!canFindTrims || loadingTrims} className="bg-[#1a1a1a] border border-gray-800 text-white text-[10px] font-black uppercase tracking-widest px-6 py-3 rounded-full hover:border-primary transition-all">
+                {loadingTrims ? "Scanning..." : "Search Trims"}
               </button>
-            </section>
 
-            {/* Step 2: Trim dropdown */}
-            <section className="space-y-3">
-              <h2 className="font-semibold">2) Select trim</h2>
-
-              <select
-                value={selectedTrim}
-                onChange={(e) => setSelectedTrim(e.target.value)}
-                disabled={trims.length === 0}
-                className="w-full bg-input border border-border rounded-md px-3 py-2 outline-none disabled:opacity-50"
-              >
-                <option value="">
-                  {trims.length === 0 ? "Find trims first" : "Choose a trim"}
-                </option>
-                {trimOptions.map((o) => (
-                  <option key={o.key} value={o.value}>
-                    {o.label}
-                  </option>
-                ))}
+              <select className="w-full bg-background border border-border rounded-2xl px-4 py-3 text-sm outline-none focus:border-primary" value={selectedTrim} onChange={e => setSelectedTrim(e.target.value)} disabled={trims.length === 0}>
+                <option value="">{trims.length === 0 ? "Perform search first" : "Select Trim Variant"}</option>
+                {trimOptions.map(o => <option key={o.key} value={o.value}>{o.label}</option>)}
               </select>
-
-              <button
-                type="button"
-                onClick={handlePreviewDetails}
-                disabled={loadingDetails || !canPreviewDetails}
-                className="bg-secondary text-secondary-foreground rounded-md px-4 py-2 font-semibold hover:opacity-90 transition disabled:opacity-50"
-              >
-                {loadingDetails ? "Loading details..." : "Preview specs"}
-              </button>
             </section>
 
-            {/* Step 3: Preview key specs */}
-            {detailsTop?.specifications && (
-              <section className="space-y-3">
-                <h2 className="font-semibold">Preview</h2>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {SPEC_KEYS.map(({ label, key }) => (
-                    <div
-                      key={key}
-                      className="bg-background/40 border border-border rounded-lg p-3"
-                    >
-                      <div className="text-xs text-muted-foreground">{label}</div>
-                      <div className="font-semibold">
-                        {detailsTop.specifications?.[key] ?? "—"}
-                      </div>
-                    </div>
-                  ))}
+            {/* 2. Optional Metadata (Registration, Price, Mileage) */}
+            <section className="space-y-6">
+              <h2 className="text-xs font-black uppercase tracking-widest text-primary flex items-center gap-2">
+                <Database size={14} /> 02. Administrative Data
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-1">
+                    <label className="text-[9px] uppercase text-gray-500 ml-2 font-bold">Plate / Registration</label>
+                    <input placeholder="AB12 CDE" className="w-full bg-background border border-border rounded-2xl px-4 py-3 text-sm outline-none" value={registration} onChange={e => setRegistration(e.target.value)} />
                 </div>
-              </section>
-            )}
-
-            {/* Step 4: Photos */}
-            <section className="space-y-3">
-              <h2 className="font-semibold">3) Upload photos</h2>
-
-              <input
-                type="file"
-                accept="image/*"
-                multiple
-                onChange={(e) => handlePhotoChange(e.target.files)}
-                className="block w-full text-sm"
-              />
-
-              {photos.length > 0 && (
-                <p className="text-sm text-muted-foreground">
-                  {photos.length} photo(s) selected
-                </p>
-              )}
+                <div className="space-y-1">
+                    <label className="text-[9px] uppercase text-gray-500 ml-2 font-bold">Location</label>
+                    <input placeholder="Vault Location" className="w-full bg-background border border-border rounded-2xl px-4 py-3 text-sm outline-none" value={location} onChange={e => setLocation(e.target.value)} />
+                </div>
+                <div className="relative space-y-1">
+                    <label className="text-[9px] uppercase text-gray-500 ml-2 font-bold">Price (£)</label>
+                    <PoundSterling className="absolute right-4 top-9 text-gray-600" size={16} />
+                    <input type="number" placeholder="50000" className="w-full bg-background border border-border rounded-2xl px-4 py-3 text-sm outline-none" value={price} onChange={e => setPrice(e.target.value)} />
+                </div>
+                <div className="relative space-y-1">
+                    <label className="text-[9px] uppercase text-gray-500 ml-2 font-bold">Current Mileage</label>
+                    <Gauge className="absolute right-4 top-9 text-gray-600" size={16} />
+                    <input type="number" placeholder="1500" className="w-full bg-background border border-border rounded-2xl px-4 py-3 text-sm outline-none" value={mileage} onChange={e => setMileage(e.target.value)} />
+                </div>
+              </div>
             </section>
 
-            {/* Submit */}
+            {/* 3. Media Upload */}
+            <section className="space-y-6">
+              <h2 className="text-xs font-black uppercase tracking-widest text-primary flex items-center gap-2">
+                <Camera size={14} /> 03. Visual Documentation
+              </h2>
+              <div className="border-2 border-dashed border-border rounded-[2rem] p-8 text-center hover:border-primary transition-all">
+                <input type="file" multiple accept="image/*" className="hidden" id="photo-upload" onChange={e => e.target.files && setPhotos(Array.from(e.target.files))} />
+                <label htmlFor="photo-upload" className="cursor-pointer flex flex-col items-center gap-2">
+                    <Camera size={32} className="text-gray-600" />
+                    <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">
+                        {photos.length > 0 ? `${photos.length} Files Selected` : "Drop Media or Click to Browse"}
+                    </span>
+                </label>
+              </div>
+            </section>
+
+            {/* Submit Button */}
             <button
               type="submit"
               disabled={submitting || !canSubmit}
-              className="w-full bg-primary text-primary-foreground rounded-md px-4 py-3 font-semibold hover:opacity-90 transition disabled:opacity-50"
+              className="w-full bg-primary text-black py-5 rounded-2xl font-black uppercase text-[11px] tracking-[0.3em] hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-30 shadow-[0_0_40px_rgba(249,115,22,0.2)]"
             >
-              {submitting ? "Adding..." : "Add Car"}
+              {submitting ? "Establishing Records..." : "Induct Asset into Vault"}
             </button>
           </form>
         </div>
-      </main>
-    </>
+      </div>
+    </main>
   );
 }

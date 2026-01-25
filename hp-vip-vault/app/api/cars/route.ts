@@ -89,6 +89,8 @@ export async function POST(req: Request) {
   const make = String(form.get("make") ?? "").trim();
   const model = String(form.get("model") ?? "").trim();
   const trim = String(form.get("trim") ?? "").trim();
+  const price = form.get("price");
+  const mileage = form.get("mileage");
 
   if (!make || !model || !trim) {
     return NextResponse.json(
@@ -156,7 +158,9 @@ export async function POST(req: Request) {
     model: top.model ?? model,
     pictures: uploadedUrls, //  text[] column
     registration,           // can be null
-    location,               // can be null 
+    location,
+    price,
+    mileage,                // can be null 
   };
 
   for (const [dbField, apiKey] of Object.entries(SPEC_MAP)) {

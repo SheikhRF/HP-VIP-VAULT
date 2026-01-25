@@ -131,7 +131,7 @@ export default async function CarDetailPage({
           <div className="space-y-8">
              <div className="bg-primary p-10 rounded-[2.5rem] text-black shadow-[0_0_50px_rgba(249,115,22,0.2)]">
                 <p className="text-[10px] font-black uppercase tracking-[0.3em] mb-2 opacity-70">Valuation</p>
-                <h3 className="text-4xl font-black italic tracking-tighter uppercase mb-6">{car.price ?? "POA"}</h3>
+                <h3 className="text-4xl font-black italic tracking-tighter uppercase mb-6">{"£" + (car.price ?? "POA")}</h3>
                 <div className="space-y-4 border-t border-black/10 pt-6">
                     <div className="flex justify-between items-center">
                         <span className="text-[9px] font-bold uppercase tracking-widest">Odometer</span>
