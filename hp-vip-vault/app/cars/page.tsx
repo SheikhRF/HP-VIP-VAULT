@@ -1,4 +1,5 @@
-
+import { auth } from "@clerk/nextjs/server";
+import { PlusCircle } from "lucide-react";
 import Link from "next/link";
 import { createClient } from "@supabase/supabase-js";
 import Navbar from "@/components/navbar";
@@ -10,11 +11,14 @@ type Car = {
   car_id: number;
   make: string | null;
   model: string | null;
-  pictures: string ;
+  pictures: string[];
 };
 
 export default async function CarsPage() {
-  // 1) Load cars from Supabase
+  //check user role
+  const { sessionClaims } = await auth();
+  const isAdmin = sessionClaims?.Role === "admin";
+  // Load cars from Supabase
   const { data, error } = await supabase
   .from("cars")
   .select("car_id, make, model, pictures");
@@ -34,13 +38,23 @@ const cars = data as Car[] | null;
       {/* Top bar */}
       <div className="flex items-center justify-between mb-8">
         <h1 className="text-4xl font-bold text-primary mb-4 text-center backdrop-blur-md border border-border/40 rounded-xl px-10 py-8 shadow-2xl">The Collection</h1>
-
+        {isAdmin ? (
         <Link
           href="/cars/add"
-          className="bg-primary text-primary-foreground rounded-md px-4 py-2 text-sm font-semibold hover:opacity-90 transition"
+          className="bg-primary text-primary-foreground rounded-md px-4 py-2 text-sm font-semibold flex items-center gap-2 hover:opacity-90 transition"
         >
-          + Add Car
+          <PlusCircle size={20} />
+          Add Car
         </Link>
+        ) : (
+          <button 
+          disabled
+          className="bg-primary text-primary-foreground rounded-md px-4 py-2 text-sm font-semibold cursor-not-allowed opacity-50 flex items-center gap-2"
+        >
+          <PlusCircle size={20} />
+          Admin Only
+        </button>
+      )}
       </div>
 
       {/* Error state */}
