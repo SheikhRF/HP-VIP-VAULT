@@ -1,0 +1,2 @@
+The Custom roles, Multi factor authentication via phone code, 
+Unlimited organization memberships, and Custom permissions features are not available on your current plan for production instances.
