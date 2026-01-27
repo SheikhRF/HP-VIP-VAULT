@@ -28,7 +28,7 @@ export default function AssetIntelligenceCard({ car }: { car: any }) {
 };
 
 
-  const isCritical = car.mot !== "Valid" || car.tax_status !== "Taxed";
+  const isCritical = car.mot !== "Valid" || car.tax_status !== "Taxed" && car.tax_status !== "SORN";
 
   return (
     <Card 
