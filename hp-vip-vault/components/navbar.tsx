@@ -36,7 +36,7 @@ export default async function Navbar() {
                             const href = `/${item.toLowerCase()}`;
                             
                             return (
-                                <NavigationMenuItem key={item}>
+                                <NavigationMenuItem key={item} className="flex-shrink-0">
                                     <NavigationMenuLink asChild>
                                         <Link
                                             href={href}
