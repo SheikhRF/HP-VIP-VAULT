@@ -13,7 +13,7 @@ export default async function Navbar() {
     const isAdmin = sessionClaims?.Role === "admin" || sessionClaims?.role === "admin";
 
     // "About" is included here to ensure it renders in the map
-    const navItems = ["Home", "Cars", "About", "Contact"];
+    const navItems = ["Home", "Cars", "About Us", "Contact"];
     if (isAdmin) navItems.push("Admin");
 
     return (
