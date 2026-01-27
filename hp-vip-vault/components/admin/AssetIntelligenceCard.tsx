@@ -27,6 +27,7 @@ export default function AssetIntelligenceCard({ car }: { car: any }) {
   }).format(amount);
 };
 
+
   const isCritical = car.mot !== "Valid" || car.tax_status !== "Taxed";
 
   return (
@@ -93,6 +94,7 @@ export default function AssetIntelligenceCard({ car }: { car: any }) {
               {car.mot || "UNKNOWN"}
             </span>
           </div>
+          
           <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-widest">
             <span className="text-gray-500 flex items-center gap-1"><ShieldCheck size={10}/> Tax Protocol</span>
             <span className={car.tax_status === "Taxed" ? "text-blue-500" : "text-orange-500 font-black"}>
@@ -102,10 +104,10 @@ export default function AssetIntelligenceCard({ car }: { car: any }) {
         </div>
 
         <Link 
-          href={`/cars/${car.car_id}`}
+          href={`/admin/cars/${car.car_id}`}
           className="flex items-center justify-center gap-2 w-full bg-white text-black py-4 rounded-xl text-[10px] font-black uppercase tracking-[0.3em] hover:bg-orange-500 hover:scale-[1.02] transition-all duration-300"
         >
-          View Detailed Intel <ChevronRight size={14} />
+          View & Edit Details<ChevronRight size={14} />
         </Link>
       </CardContent>
     </Card>
