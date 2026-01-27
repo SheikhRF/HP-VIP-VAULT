@@ -25,7 +25,7 @@ export default async function AdminDashboard() {
   return (
     <>
       <Navbar />
-      <main className="min-h-screen bg-black text-white pt-32 pb-20 px-6">
+      <main className="min-h-screen bg-background text-white pt-32 pb-20 px-6">
         <div className="max-w-7xl mx-auto space-y-10">
           
           {/* HUD Header */}

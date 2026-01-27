@@ -3,21 +3,9 @@
 
 import { useRef, useState } from "react";
 import Link from "next/link";
-import { 
-  Card, 
-  CardContent, 
-  CardHeader, 
-  CardTitle 
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { 
-  Gauge, 
-  Zap, 
-  ChevronRight, 
-  AlertTriangle, 
-  ShieldCheck, 
-  Activity 
-} from "lucide-react";
+import { Gauge, Zap, ChevronRight, AlertTriangle, ShieldCheck, Activity} from "lucide-react";
 
 export default function AssetIntelligenceCard({ car }: { car: any }) {
   const divRef = useRef<HTMLDivElement>(null);
@@ -54,7 +42,7 @@ export default function AssetIntelligenceCard({ car }: { car: any }) {
         <div className="flex justify-between items-start">
           <div className="space-y-1">
             <p className="text-[9px] font-black uppercase tracking-[0.3em] text-orange-500 leading-none">
-               {car.registration || "NO PLATE"}
+               {car.registration != "NULL" ? car.registration : "UNREGISTERED"}
             </p>
             <CardTitle className="text-2xl font-black italic uppercase tracking-tighter text-white leading-none pt-1">
               {car.make} <span className="text-gray-400">{car.model}</span>
