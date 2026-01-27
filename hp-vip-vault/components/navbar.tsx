@@ -12,8 +12,7 @@ export default async function Navbar() {
     // Supporting both 'Role' and 'role' for safety
     const isAdmin = sessionClaims?.Role === "admin" || sessionClaims?.role === "admin";
 
-    // "About" is included here to ensure it renders in the map
-    const navItems = ["Home", "Cars", "About Us", "Contact"];
+    const navItems = ["Home", "Cars", "About", "Contact"];
     if (isAdmin) navItems.push("Admin");
 
     return (
@@ -32,7 +31,6 @@ export default async function Navbar() {
                     <NavigationMenuList className="flex gap-1 md:gap-4">
                         {navItems.map((item) => {
                             const isSpecial = item === "Admin";
-                            // Restoration of your original logic: Home points to /home
                             const href = `/${item.toLowerCase()}`;
                             
                             return (
