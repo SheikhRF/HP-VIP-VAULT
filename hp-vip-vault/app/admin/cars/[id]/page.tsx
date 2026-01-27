@@ -7,20 +7,26 @@ import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminCarEditPage({ params }: { params: { id: string } }) {
+export default async function AdminCarEditPage({ 
+  params 
+}: { 
+  params: Promise<{ id: string }> 
+}) {
+  // 2. You MUST await params now
+  const { id } = await params;
+
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SECRET_KEY!
   );
 
-  const { data: car } = await supabase.from("cars").select("*");
-
+  const { data: car } = await supabase.from("cars").select("*").eq("car_id", Number(id)).single();
   if (!car) return <div className="p-20 text-white font-black uppercase text-center">Asset Not Found</div>;
 
   return (
     <>
       <Navbar />
-      <main className="min-h-screen bg-black text-white pt-32 pb-20 px-6">
+      <main className="min-h-screen bg-background text-white pt-32 pb-20 px-6">
         <div className="max-w-4xl mx-auto space-y-8">
           
           <header className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 border-b border-white/5 pb-10">

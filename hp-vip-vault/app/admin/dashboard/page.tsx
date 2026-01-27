@@ -4,8 +4,9 @@ import Navbar from "@/components/navbar";
 import AssetIntelligenceCard from "@/components/admin/AssetIntelligenceCard";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { ShieldAlert, Activity } from "lucide-react";
+import { ShieldAlert, Activity, ArrowLeft } from "lucide-react";
 import { SyncFleetButton } from "@/components/admin/SyncFleetButton"; // New Import
+import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 
@@ -27,7 +28,9 @@ export default async function AdminDashboard() {
       <Navbar />
       <main className="min-h-screen bg-background text-white pt-32 pb-20 px-6">
         <div className="max-w-7xl mx-auto space-y-10">
-          
+          <Link href="/admin/" className="flex items-center gap-2 text-gray-500 hover:text-orange-500 text-[9px] font-black uppercase tracking-widest transition-colors">
+                <ArrowLeft size={12} /> Back to Hub
+          </Link>
           <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
             <div className="space-y-4">
               <h1 className="text-6xl font-black italic uppercase tracking-tighter leading-none">

@@ -11,6 +11,7 @@ const isPublicRoute = createRouteMatcher([
 const isAdminRoute = createRouteMatcher([
   '/admin(.*)',
   '/cars/add',
+
 ]);
 
 export default clerkMiddleware(async (auth, req) => {
