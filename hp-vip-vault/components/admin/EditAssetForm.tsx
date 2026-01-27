@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { 
-  Save, Trash2, Loader2, Wind, Scaling, Coins, MapPin, Settings2 
+  Save, Trash2, Loader2, Wind, Scaling, Coins, MapPin, Settings2, ShieldAlert 
 } from "lucide-react";
 
 export default function EditAssetForm({ initialData }: { initialData: any }) {
@@ -35,16 +35,36 @@ export default function EditAssetForm({ initialData }: { initialData: any }) {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type } = e.target;
-    // Convert to number for bigint/integer fields
     const val = type === "number" ? (value === "" ? null : Number(value)) : value;
     setFormData({ ...formData, [name]: val });
   };
 
   return (
     <form onSubmit={handleUpdate} className="space-y-12 pb-20">
+      
+      {/* IDENTITY SECTION (NEW) */}
+      <div className="space-y-6">
+        <h3 className="text-[10px] font-black uppercase text-orange-500 tracking-[0.4em] flex items-center gap-2">
+          <ShieldAlert size={14} /> Asset Identity
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 bg-white/[0.02] p-6 rounded-[2rem] border border-white/5">
+            <div className="space-y-1">
+              <label className="text-[8px] font-black uppercase text-gray-500 ml-1">Registration (Number Plate)</label>
+              <Input 
+                name="registration" 
+                value={formData.registration ?? ""} 
+                onChange={handleChange} 
+                maxLength={7}
+                className="bg-black border-orange-500/30 text-orange-500 font-black uppercase tracking-widest text-lg h-12 focus:border-orange-500 transition-colors" 
+              />
+            </div>
+            <Field label="Make" name="make" value={formData.make} onChange={handleChange} />
+            <Field label="Model" name="model" value={formData.model} onChange={handleChange} />
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-        
-        {/* SECTION: TECHNICAL INTELLIGENCE */}
+        {/* TECHNICAL TELEMETRY */}
         <div className="space-y-6">
           <h3 className="text-[10px] font-black uppercase text-orange-500 tracking-[0.4em] flex items-center gap-2">
             <Wind size={14} /> Technical Intelligence
@@ -65,7 +85,7 @@ export default function EditAssetForm({ initialData }: { initialData: any }) {
           </div>
         </div>
 
-        {/* SECTION: CHASSIS & LOGISTICS */}
+        {/* CHASSIS & LOGISTICS */}
         <div className="space-y-6">
           <h3 className="text-[10px] font-black uppercase text-orange-500 tracking-[0.4em] flex items-center gap-2">
             <Scaling size={14} /> Chassis & Logistics
@@ -78,19 +98,16 @@ export default function EditAssetForm({ initialData }: { initialData: any }) {
               <Field label="Trunk Capacity" name="max_trunk_capacity" value={formData.max_trunk_capacity} onChange={handleChange} />
               <Field label="Seats" name="number_of_seats" type="number" value={formData.number_of_seats} onChange={handleChange} />
               <Field label="Location" name="location" value={formData.location} onChange={handleChange} icon={<MapPin size={8} />} />
-              
-              <div className="col-span-2 space-y-4 pt-2">
-                 <div className="grid grid-cols-2 gap-4">
-                    <Field label="Current Mileage" name="mileage" type="number" value={formData.mileage} onChange={handleChange} />
-                    <Field label="Asset Valuation (Price)" name="price" type="number" value={formData.price} onChange={handleChange} />
-                 </div>
+              <div className="col-span-2 grid grid-cols-2 gap-4 pt-2">
+                  <Field label="Current Mileage" name="mileage" type="number" value={formData.mileage} onChange={handleChange} />
+                  <Field label="Asset Valuation (Price)" name="price" type="number" value={formData.price} onChange={handleChange} />
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* SECTION: COMPLIANCE OVERRIDE */}
+      {/* COMPLIANCE */}
       <div className="space-y-6">
           <h3 className="text-[10px] font-black uppercase text-orange-500 tracking-[0.4em] flex items-center gap-2">
             <Settings2 size={14} /> Compliance Protocol
@@ -98,13 +115,13 @@ export default function EditAssetForm({ initialData }: { initialData: any }) {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 bg-white/[0.02] p-6 rounded-[2rem] border border-white/5">
               <Field label="MOT Status" name="mot" value={formData.mot} onChange={handleChange} />
               <Field label="Tax Status" name="tax_status" value={formData.tax_status} onChange={handleChange} />
-              <Field type="date" label="Tax Due Date" name="tax_due_date" value={formData.tax_due_date} onChange={handleChange} />
+              <Field label="Tax Due Date" name="tax_due_date" value={formData.tax_due_date} onChange={handleChange} />
           </div>
       </div>
 
       {/* ACTION BAR */}
       <div className="flex justify-between items-center pt-10 border-t border-white/5">
-        <button type="button" className="text-red-500 text-[10px] font-black uppercase tracking-widest flex items-center gap-2 hover:opacity-50 transition-all">
+        <button type="button" onClick={() => {/* Add delete logic call */}} className="text-red-500 text-[10px] font-black uppercase tracking-widest flex items-center gap-2 hover:opacity-50 transition-all">
           <Trash2 size={14} /> Decommission Asset
         </button>
         <button type="submit" disabled={loading} className="bg-orange-500 text-black px-12 py-4 rounded-full font-black uppercase text-[11px] tracking-[0.3em] hover:scale-105 transition-all flex items-center gap-2 shadow-[0_0_20px_rgba(249,115,22,0.3)]">
