@@ -12,6 +12,7 @@ export default async function Navbar() {
     // Supporting both 'Role' and 'role' for safety
     const isAdmin = sessionClaims?.Role === "admin" || sessionClaims?.role === "admin";
 
+    // "About" is included here to ensure it renders in the map
     const navItems = ["Home", "Cars", "About", "Contact"];
     if (isAdmin) navItems.push("Admin");
 
@@ -31,13 +32,16 @@ export default async function Navbar() {
                     <NavigationMenuList className="flex gap-1 md:gap-4">
                         {navItems.map((item) => {
                             const isSpecial = item === "Admin";
+                            // Restoration of your original logic: Home points to /home
+                            const href = `/${item.toLowerCase()}`;
+                            
                             return (
                                 <NavigationMenuItem key={item}>
                                     <NavigationMenuLink asChild>
                                         <Link
-                                            href={`/${item.toLowerCase()}`}
+                                            href={href}
                                             className={`
-                                                relative px-4 py-2 text-[10px] font-black uppercase tracking-[0.2em] transition-all duration-300
+                                                relative px-4 py-2 text-[10px] font-black uppercase tracking-[0.2em] transition-all duration-300 inline-block
                                                 ${isSpecial 
                                                     ? "text-orange-500 hover:text-white border border-orange-500/30 rounded-full bg-orange-500/5 shadow-[0_0_15px_rgba(249,115,22,0.1)]" 
                                                     : "text-gray-400 hover:text-white"
@@ -57,7 +61,7 @@ export default async function Navbar() {
                     </NavigationMenuList>
                 </NavigationMenu>
 
-                {/* Status Indicator (Replacing Search) */}
+                {/* Status Indicator */}
                 <div className="hidden md:flex items-center gap-4">
                     <div className="flex flex-col items-end">
                         <span className="text-[7px] font-black uppercase tracking-[0.3em] text-gray-500 leading-none">Access Level</span>
