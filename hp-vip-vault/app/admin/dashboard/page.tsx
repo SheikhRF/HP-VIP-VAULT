@@ -31,9 +31,6 @@ export default async function AdminDashboard() {
           {/* HUD Header */}
           <div className="flex flex-col md:flex-row justify-between items-end gap-6">
             <div className="space-y-2">
-              <Badge variant="outline" className="border-orange-500/50 text-orange-500 uppercase tracking-widest text-[8px] bg-orange-500/5 py-1">
-                <ShieldAlert className="mr-1" size={10} /> Root Access: Secure Uplink
-              </Badge>
               <h1 className="text-6xl font-black italic uppercase tracking-tighter leading-none">
                 Fleet <span className="text-orange-500">Intelligence</span>
               </h1>

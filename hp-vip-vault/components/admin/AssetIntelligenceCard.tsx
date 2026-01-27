@@ -5,7 +5,7 @@ import { useRef, useState } from "react";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Gauge, Zap, ChevronRight, AlertTriangle, ShieldCheck, Activity} from "lucide-react";
+import { Gauge, Zap, ChevronRight, AlertTriangle, ShieldCheck, Activity, Banknote, Coins, CreditCard} from "lucide-react";
 
 export default function AssetIntelligenceCard({ car }: { car: any }) {
   const divRef = useRef<HTMLDivElement>(null);
@@ -18,6 +18,14 @@ export default function AssetIntelligenceCard({ car }: { car: any }) {
     const rect = divRef.current.getBoundingClientRect();
     setPosition({ x: e.clientX - rect.left, y: e.clientY - rect.top });
   };
+  
+  const formatCurrency = (amount: number) => {
+  return new Intl.NumberFormat('en-GB', {
+    style: 'currency',
+    currency: 'GBP',
+    maximumFractionDigits: 0, // Removes .00 for a cleaner look
+  }).format(amount);
+};
 
   const isCritical = car.mot !== "Valid" || car.tax_status !== "Taxed";
 
@@ -69,10 +77,10 @@ export default function AssetIntelligenceCard({ car }: { car: any }) {
             </p>
           </div>
           <div className="bg-white/[0.03] p-4 rounded-xl border border-white/5 group-hover:border-orange-500/20 transition-colors">
-            <p className="text-[8px] font-black uppercase text-gray-500 tracking-widest mb-1">Performance</p>
+            <p className="text-[8px] font-black uppercase text-gray-500 tracking-widest mb-1">Price</p>
             <p className="text-sm font-black italic text-white flex items-center gap-2">
-              <Zap size={14} className="text-orange-500" />
-              {car.engine_power || "???"} <span className="text-[8px] opacity-30">HP</span>
+              <Banknote size={14} className="text-orange-500" />
+              {formatCurrency(Number(car.price)) || "???"}
             </p>
           </div>
         </div>
