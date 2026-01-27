@@ -17,7 +17,7 @@ export default async function AdminDashboard() {
   );
 
   const { data: cars } = await supabase.from("cars").select("*");
-  const alerts = cars?.filter(c => c.mot !== "Valid" || c.tax_status !== "Taxed").length || 0;
+  const alerts = cars?.filter(c => c.mot !== "Valid" && c.mot !== "No details held by DVLA" || c.tax_status !== "Taxed" && c.tax_status !== "SORN").length || 0;
 
   const lastSyncTimestamp = cars?.reduce((oldest, car) => {
     if (!car.last_synced_at) return oldest;
