@@ -124,9 +124,9 @@ export async function POST(req: Request) {
   for (let i = 0; i < files.length; i++) {
     const file = files[i];
 
-    if (file.size > 15 * 1024 * 1024) {
+    if (file.size > 20 * 1024 * 1024) {
       return NextResponse.json(
-        { ok: false, error: `Photo ${i + 1} is too large (max 15MB)` },
+        { ok: false, error: `Photo ${i + 1} is too large (max 20MB)` },
         { status: 400 }
       );
     }
