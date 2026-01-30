@@ -39,11 +39,18 @@ export default async function CarDetailPage({
   const carId = Number(car_id);
   const supabase = getSupabase();
 
+  // 1. Fetch Car Data
   const { data: car, error } = await supabase
     .from("cars")
     .select("*")
     .eq("car_id", carId)
     .single();
+
+  // 2. Fetch Trip Intelligence Data
+  const { data: trips } = await supabase
+    .from("trips")
+    .select("rating")
+    .eq("car_id", carId);
 
   if (error || !car) {
     return (
@@ -55,6 +62,12 @@ export default async function CarDetailPage({
       </main>
     );
   }
+
+  // Calculate Trip Stats
+  const totalTrips = trips?.length || 0;
+  const averageRating = totalTrips > 0 
+    ? (trips!.reduce((acc, curr) => acc + (Number(curr.rating) || 0), 0) / totalTrips).toFixed(1)
+    : "0.0";
 
   const pictures: string[] = Array.isArray(car.pictures) ? car.pictures : [];
   const title = `${car.make ?? ""} ${car.model ?? ""}`.trim() || "Asset";
@@ -104,14 +117,13 @@ export default async function CarDetailPage({
         <div className="max-w-7xl mx-auto px-6 mt-12 grid grid-cols-1 lg:grid-cols-3 gap-8">
           
           <div className="lg:col-span-2 space-y-8">
-            {/* Performance & Mechanics Section */}
             <div className="bg-[#1a1a1a] border border-gray-800 rounded-[2.5rem] p-8 md:p-12 shadow-2xl relative overflow-hidden">
                 <Database className="absolute -right-4 -top-4 text-white/5" size={160} />
                 <h2 className="text-2xl font-black italic uppercase tracking-tighter mb-8 flex items-center gap-3">
                     <div className="h-1 w-8 bg-primary" /> Technical Intelligence
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-2">
-                    <SpecRow label="Acceleration (0–100)" value={car.acceleration_0_100} />
+                    <SpecRow label="Acceleration (0-100)" value={car.acceleration_0_100} />
                     <SpecRow label="Max Speed" value={car.max_speed} />
                     <SpecRow label="Engine Power" value={car.engine_power} />
                     <SpecRow label="Max Torque" value={car.max_torque} />
@@ -124,7 +136,6 @@ export default async function CarDetailPage({
                 </div>
             </div>
 
-            {/* Structure & Capacity Section */}
             <div className="bg-[#1a1a1a] border border-gray-800 rounded-[2.5rem] p-8 md:p-12 shadow-2xl relative overflow-hidden">
                 <Activity className="absolute -right-4 -top-4 text-white/5" size={160} />
                 <h2 className="text-2xl font-black italic uppercase tracking-tighter mb-8 flex items-center gap-3 text-white">
@@ -139,7 +150,6 @@ export default async function CarDetailPage({
                 </div>
             </div>
 
-            {/* DVLA Section */}
             <div className="bg-[#1a1a1a] border border-gray-800 rounded-[2.5rem] p-8 md:p-12 shadow-2xl">
                 <h2 className="text-2xl font-black italic uppercase tracking-tighter mb-8 flex items-center gap-3 text-primary">
                     <div className="h-1 w-8 bg-white" /> DVLA DATA
@@ -154,9 +164,9 @@ export default async function CarDetailPage({
             </div>
           </div>
 
-          {/* Sidebar: Financials & Identity */}
-          <div className="space-y-8">
-             <div className="bg-primary p-10 rounded-[2.5rem] text-black shadow-[0_0_50px_rgba(249,115,22,0.2)]">
+          {/* Sidebar: Financials & Identity Intelligence */}
+          <div className="gap-8 grid flex flex-col items-start h-fit">
+             <div className="bg-primary p-10 rounded-[2.5rem] text-black shadow-[0_0_50px_rgba(249,115,22,0.2)] w-full">
                 <p className="text-[10px] font-black uppercase tracking-[0.3em] mb-2 opacity-70">Valuation</p>
                 <h3 className="text-4xl font-black italic tracking-tighter uppercase mb-6">{formatPrice(car.price)}</h3>
                 <div className="space-y-4 border-t border-black/10 pt-6">
@@ -170,8 +180,17 @@ export default async function CarDetailPage({
                     </div>
                 </div>
              </div>
-             
 
+             <div className="bg-primary p-10 rounded-[2.5rem] text-black shadow-[0_0_50px_rgba(249,115,22,0.2)] w-full">
+                <p className="text-[10px] font-black uppercase tracking-[0.3em] mb-2 opacity-70">RATING</p>
+                <h3 className="text-4xl font-black italic tracking-tighter uppercase mb-6">{averageRating} <span className="text-sm">/ 5.0</span></h3>
+                <div className="space-y-4 border-t border-black/10 pt-6">
+                    <div className="flex justify-between items-center">
+                        <span className="text-[9px] font-bold uppercase tracking-widest">Total Trips</span>
+                        <span className="text-sm font-black italic">{totalTrips} DRIVES</span>
+                    </div>
+                </div>
+             </div>
           </div>
 
         </div>
