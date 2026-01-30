@@ -1,7 +1,9 @@
 "use client";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ChevronLeft, Camera, Search, Database, Gauge, PoundSterling } from "lucide-react";
+import { ChevronLeft, Camera, Search, Database, Gauge, PoundSterling, Loader2 } from "lucide-react";
+// Added only what is necessary for compression
+import imageCompression from 'browser-image-compression'; 
 
 type TrimOption = {
   make: string;
@@ -97,6 +99,23 @@ export default function AddCarPage() {
     e.preventDefault();
     setSubmitting(true);
     try {
+      // Logic added to compress images before they are appended to FormData
+      const compressionOptions = {
+        maxSizeMB: 0.8,           // Target size to stay under Vercel's 4.5MB limit
+        maxWidthOrHeight: 1920,  // Keep it HD
+        useWebWorker: true,
+      };
+
+      const compressedPhotos = await Promise.all(
+        photos.map(async (p) => {
+          try {
+            return await imageCompression(p, compressionOptions);
+          } catch (err) {
+            return p; // Fallback to original if compression fails
+          }
+        })
+      );
+
       const fd = new FormData();
       fd.append("make", make);
       fd.append("model", model);
@@ -105,7 +124,9 @@ export default function AddCarPage() {
       if (location) fd.append("location", location);
       if (price) fd.append("price", price);
       if (mileage) fd.append("mileage", mileage);
-      photos.forEach(p => fd.append("photos", p));
+      
+      // Using compressedPhotos instead of original photos
+      compressedPhotos.forEach(p => fd.append("photos", p));
 
       const res = await fetch("/api/cars", { method: "POST", body: fd });
       if (!res.ok) throw new Error("Submission failed");
