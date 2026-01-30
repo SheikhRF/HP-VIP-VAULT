@@ -45,4 +45,4 @@ notes.txt
 # typescript
 *.tsbuildinfo
 next-env.d.ts
-commitHistory.txt
+commitHistory.md
