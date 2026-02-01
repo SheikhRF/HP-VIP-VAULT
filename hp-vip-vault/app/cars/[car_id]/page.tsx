@@ -191,7 +191,9 @@ export default async function CarDetailPage({
                 <div className="space-y-4 border-t border-black/10 pt-6">
                     <div className="flex justify-between items-center">
                         <span className="text-[9px] font-bold uppercase tracking-widest">Total Trips</span>
-                        <span className="text-sm font-black italic">{totalTrips} DRIVES</span>
+                        <span className="text-sm font-black italic">
+                          {totalTrips} {totalTrips === 1 ? "DRIVE" : "DRIVES"}
+                        </span>
                     </div>
                 </div>
              </div>

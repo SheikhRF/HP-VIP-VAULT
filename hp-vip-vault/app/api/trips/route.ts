@@ -5,7 +5,7 @@ import { auth } from "@clerk/nextjs/server";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-// Initialize Supabase client using your existing environment variables
+// Initialize Supabase client with Service Role for bypass permissions
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseSecret = process.env.SUPABASE_SECRET_KEY;
 
@@ -38,7 +38,7 @@ export async function POST(req: Request) {
       notes 
     } = body;
 
-    // 3. Validation: Match your database constraints
+    // 3. Validation: Check for mandatory fields
     if (!car_id || !start_date || !mileage_before || !end_date || !mileage_after || !rating) {
       return NextResponse.json(
         { ok: false, error: "Missing mandatory trip data" },
@@ -46,8 +46,11 @@ export async function POST(req: Request) {
       );
     }
 
-    // Validate mileage logic: After must be greater or equal to Before
-    if (mileage_after < mileage_before) {
+    const mBefore = parseInt(mileage_before);
+    const mAfter = parseInt(mileage_after);
+
+    // Logic Gate: Prevent negative distance
+    if (mAfter < mBefore) {
       return NextResponse.json(
         { ok: false, error: "Odometer After cannot be less than Odometer Before" },
         { status: 400 }
@@ -57,34 +60,63 @@ export async function POST(req: Request) {
     // 4. Build the DB row
     const row = {
       car_id: parseInt(car_id),
-      user_id: userId, // Link trip to the current Clerk user
+      user_id: userId, 
       start_date,
       end_date,
-      mileage_before: parseInt(mileage_before),
-      mileage_after: parseInt(mileage_after),
+      mileage_before: mBefore,
+      mileage_after: mAfter,
       rating: parseInt(rating),
       notes: notes || null,
     };
 
     // 5. Insert into Supabase 'trips' table
-    const { data, error } = await supabase
+    const { data: tripData, error: tripError } = await supabase
       .from("trips")
       .insert(row)
       .select()
       .single();
 
-    if (error) {
-      console.error("Supabase trip insertion error:", error.message);
+    if (tripError) {
+      console.error("Supabase trip insertion error:", tripError.message);
       return NextResponse.json(
-        { ok: false, error: error.message },
+        { ok: false, error: tripError.message },
         { status: 500 }
       );
     }
 
+    // 6. MILEAGE SYNC PROTOCOL: Update Main Asset Table
+    // Fetch current odometer from 'cars' table
+    const { data: carData } = await supabase
+      .from("cars")
+      .select("mileage")
+      .eq("car_id", row.car_id)
+      .single();
+
+    const currentCarMileage = carData?.mileage ? parseInt(carData.mileage) : 0;
+
+    // Only update the main car record if this trip provides a newer, higher reading
+    // This allows users to log older, backdated trips without breaking current telemetry
+    let carUpdated = false;
+    if (mAfter > currentCarMileage) {
+      const { error: updateError } = await supabase
+        .from("cars")
+        .update({ mileage: mAfter })
+        .eq("car_id", row.car_id);
+
+      if (updateError) {
+        console.error("Auto-mileage sync failed:", updateError.message);
+      } else {
+        carUpdated = true;
+      }
+    }
+
     return NextResponse.json({
       ok: true,
-      trip_id: data.trip_id,
-      message: "Trip successfully logged to Vault"
+      trip_id: tripData.trip_id,
+      car_mileage_synced: carUpdated,
+      message: carUpdated 
+        ? "Trip logged and car telemetry updated to new peak mileage." 
+        : "Trip logged. Car telemetry remains at current peak."
     });
 
   } catch (err: any) {
