@@ -71,10 +71,10 @@ export default function ServiceReminder({ cars }: { cars: any[] }) {
               {hasCritical ? <AlertTriangle size={18} /> : <Calendar size={18} />}
             </div>
             <div className="text-left">
-              <h3 className="text-[10px] font-black uppercase text-white tracking-[0.4em]">Maintenance Telemetry</h3>
+              <h3 className="text-[10px] font-black uppercase text-white tracking-[0.4em]">Service Telemetry</h3>
               {hasCritical && (
                 <p className="text-[8px] font-black text-orange-500 uppercase tracking-widest mt-1">
-                  CRITICAL ACTION REQUIRED
+                  ACTION REQUIRED
                 </p>
               )}
             </div>
@@ -99,7 +99,7 @@ export default function ServiceReminder({ cars }: { cars: any[] }) {
 
                 <div className="flex items-center gap-3">
                   <div className="text-right border-r border-white/10 pr-3 mr-1">
-                    <p className="text-[10px] font-black uppercase">{car.diffDays < 0 ? "OVERDUE" : `${car.diffDays}D`}</p>
+                    <p className="text-[10px] font-black uppercase">{car.diffDays < 0 ? "OVERDUE" : car.diffDays > 365 ? "Over a Year" : `${car.diffDays} Days`}</p>
                   </div>
                   <button onClick={() => openServiceModal(car.car_id, car.registration)} className="p-1 hover:scale-110 transition-transform text-white/80 hover:text-orange-500">
                     <CheckCircle2 size={18} />
