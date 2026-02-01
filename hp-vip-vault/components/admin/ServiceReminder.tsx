@@ -90,7 +90,7 @@ export default function ServiceReminder({ cars }: { cars: any[] }) {
           <div className="pt-4 border-t border-white/5 space-y-3">
             {reminders.map((car) => (
               <div key={car.car_id} className={`flex items-center justify-between p-4 rounded-2xl border ${car.statusColor}`}>
-                <Link href={`/admin/edit/${car.car_id}`} className="flex flex-col gap-1 group">
+                <Link href={`/admin/cars/${car.car_id}`} className="flex flex-col gap-1 group">
                   <span className="text-[10px] font-black tracking-widest uppercase italic group-hover:text-white transition-colors">
                     {car.registration}
                   </span>
