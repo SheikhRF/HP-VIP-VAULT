@@ -20,14 +20,12 @@ export async function POST(req: Request) {
       const { car_id, isDelete } = body;
 
       if (isDelete && car_id) {
-        // 1. Fetch existing asset to identify media for purging
         const { data: car } = await supabase
           .from("cars")
           .select("pictures")
           .eq("car_id", car_id)
           .single();
 
-        // 2. Purge files from Storage Bucket if they exist
         if (car?.pictures && Array.isArray(car.pictures)) {
           const pathsToDelete = car.pictures
             .map((url: string) => url.split("car-images/")[1])
@@ -38,7 +36,6 @@ export async function POST(req: Request) {
           }
         }
 
-        // 3. Decommission database record
         const { error: dbError } = await supabase
           .from("cars")
           .delete()
@@ -58,8 +55,6 @@ export async function POST(req: Request) {
 
       // 1. Build update object from all form fields
       const updateData: any = {};
-      
-      // List of all keys to extract from FormData (matches your database schema)
       const fields = [
         "registration", "make", "model", "year_of_manufacture", "mot", 
         "tax_status", "tax_due_date", "acceleration_0_100", "body_type", 
@@ -72,19 +67,37 @@ export async function POST(req: Request) {
       fields.forEach((field) => {
         const value = formData.get(field);
         if (value !== null) {
-          // Sanitization: Convert empty/dash strings to null for DB integrity
           updateData[field] = (value === "" || value === "-") ? null : value;
         }
       });
 
-      // 2. Handle New Photo Uploads
+      // 2. PROTOCOL: SPECIFIC PHOTO PURGE
+      const removedPhotosRaw = formData.get("removed_photos");
+      const removedPhotos: string[] = removedPhotosRaw ? JSON.parse(removedPhotosRaw as string) : [];
+
+      if (removedPhotos.length > 0) {
+        // Convert URLs to relative storage paths
+        const pathsToDelete = removedPhotos
+          .map((url: string) => url.split("car-images/")[1])
+          .filter(Boolean);
+
+        if (pathsToDelete.length > 0) {
+          const { error: storageError } = await supabase.storage
+            .from("car-images")
+            .remove(pathsToDelete);
+          
+          if (storageError) console.error("Specific storage cleanup failed:", storageError);
+        }
+      }
+
+      // 3. Handle New Photo Uploads
       const newFiles = formData.getAll("photos") as File[];
       let newPhotoUrls: string[] = [];
 
       if (newFiles.length > 0) {
         for (const file of newFiles) {
           const fileName = `${carId}/${Date.now()}-${file.name.replace(/\s+/g, "_")}`;
-          const { data, error: uploadError } = await supabase.storage
+          const { data } = await supabase.storage
             .from("car-images")
             .upload(fileName, file);
 
@@ -97,7 +110,7 @@ export async function POST(req: Request) {
         }
       }
 
-      // 3. Merge with existing pictures
+      // 4. MERGE LOGIC: Filter out removed, add new
       const { data: currentCar } = await supabase
         .from("cars")
         .select("pictures")
@@ -105,9 +118,16 @@ export async function POST(req: Request) {
         .single();
         
       const existingPictures = currentCar?.pictures || [];
-      updateData.pictures = [...existingPictures, ...newPhotoUrls];
+      
+      // Keep only pictures that were NOT marked for removal
+      const remainingPictures = existingPictures.filter(
+        (url: string) => !removedPhotos.includes(url)
+      );
 
-      // 4. Commit Overrides to Database
+      // Final array is (Old - Removed) + New
+      updateData.pictures = [...remainingPictures, ...newPhotoUrls];
+
+      // 5. Commit Overrides to Database
       const { error: updateError } = await supabase
         .from("cars")
         .update(updateData)

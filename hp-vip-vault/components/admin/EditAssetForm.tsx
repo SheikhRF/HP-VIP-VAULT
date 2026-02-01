@@ -4,19 +4,19 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { 
-  Save, Trash2, Loader2, Wind, Scaling, Coins, MapPin, Settings2, ShieldAlert, Camera, X 
+  Save, Trash2, Loader2, Wind, Scaling, Coins, MapPin, Settings2, ShieldAlert, Camera, X, Plus 
 } from "lucide-react";
 import imageCompression from 'browser-image-compression'; 
 
 export default function EditAssetForm({ initialData }: { initialData: any }) {
   const [formData, setFormData] = useState(initialData);
+  const [photosToRemove, setPhotosToRemove] = useState<string[]>([]); // Track URLs to delete
   const [newPhotos, setNewPhotos] = useState<File[]>([]);
   const [loading, setLoading] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isCompressing, setIsCompressing] = useState(false);
   const router = useRouter();
 
-  // --- PROTOCOL: DECOMMISSION ASSET (DELETE) ---
   const handleDecommission = async () => {
     const confirmDelete = confirm(
       `SYSTEM WARNING: You are about to decommission ${formData.make} ${formData.model}. This action is irreversible. Proceed?`
@@ -56,14 +56,17 @@ export default function EditAssetForm({ initialData }: { initialData: any }) {
     try {
       const fd = new FormData();
       
-      // Append all existing data fields
+      // 1. Append basic data
       Object.keys(formData).forEach(key => {
         if (key !== 'pictures') { 
            fd.append(key, formData[key] ?? "");
         }
       });
 
-      // Process and Compress new photos
+      // 2. Append the list of photos to remove
+      fd.append("removed_photos", JSON.stringify(photosToRemove));
+
+      // 3. Process new photo uploads
       if (newPhotos.length > 0) {
         setIsCompressing(true);
         const options = { maxSizeMB: 0.8, maxWidthOrHeight: 1920, useWebWorker: true };
@@ -94,28 +97,28 @@ export default function EditAssetForm({ initialData }: { initialData: any }) {
     }
   };
 
-  // --- SANITIZED CHANGE HANDLER ---
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type } = e.target;
-
-    // Fix for "No number after minus sign" JSON error
     if (type === "number") {
-      // If field is empty or contains an invalid dangling minus, set to null
       if (value === "" || value === "-") {
         setFormData({ ...formData, [name]: null });
         return;
       }
-      
-      // Store as a valid number
       const num = Number(value);
       if (!isNaN(num)) {
         setFormData({ ...formData, [name]: num });
       }
       return;
     }
-
-    // Standard text handling
     setFormData({ ...formData, [name]: value });
+  };
+
+  const togglePhotoRemoval = (url: string) => {
+    if (photosToRemove.includes(url)) {
+      setPhotosToRemove(photosToRemove.filter(p => p !== url));
+    } else {
+      setPhotosToRemove([...photosToRemove, url]);
+    }
   };
 
   return (
@@ -142,20 +145,35 @@ export default function EditAssetForm({ initialData }: { initialData: any }) {
         </div>
       </div>
 
-      {/* VISUAL ASSETS */}
+      {/* VISUAL ASSETS (UPDATED WITH PRUNING) */}
       <div className="space-y-6">
         <h3 className="text-[10px] font-black uppercase text-orange-500 tracking-[0.4em] flex items-center gap-2">
           <Camera size={14} /> Visual Documentation
         </h3>
         <div className="grid grid-cols-1 gap-6 bg-white/[0.02] p-6 rounded-[2rem] border border-white/5">
           <div className="space-y-2">
-            <label className="text-[8px] font-black uppercase text-gray-500 ml-1">Current Vault Images</label>
-            <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
-              {formData.pictures?.map((url: string, i: number) => (
-                <div key={i} className="relative w-20 h-20 rounded-xl overflow-hidden border border-white/10 shrink-0">
-                  <img src={url} alt="asset" className="object-cover w-full h-full opacity-50" />
-                </div>
-              ))}
+            <label className="text-[8px] font-black uppercase text-gray-500 ml-1">Current Vault Images (Select to Remove)</label>
+            <div className="flex flex-wrap gap-4 pb-2">
+              {formData.pictures?.map((url: string, i: number) => {
+                const isMarked = photosToRemove.includes(url);
+                return (
+                  <div key={i} className={`relative w-24 h-24 rounded-xl overflow-hidden border transition-all duration-300 ${isMarked ? 'opacity-20 grayscale border-red-500 scale-90' : 'border-white/10 hover:border-orange-500/50'}`}>
+                    <img src={url} alt="asset" className="object-cover w-full h-full" />
+                    <button 
+                      type="button" 
+                      onClick={() => togglePhotoRemoval(url)}
+                      className={`absolute top-1 right-1 rounded-full p-1 transition-colors ${isMarked ? 'bg-red-500 text-white' : 'bg-black/80 text-white hover:text-red-500'}`}
+                    >
+                      {isMarked ? <Plus size={12} /> : <X size={12} />}
+                    </button>
+                    {isMarked && (
+                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                            <span className="text-[10px] font-black text-red-500 uppercase">Delete</span>
+                        </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
 
@@ -186,7 +204,6 @@ export default function EditAssetForm({ initialData }: { initialData: any }) {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-        {/* TECHNICAL INTELLIGENCE */}
         <div className="space-y-6">
           <h3 className="text-[10px] font-black uppercase text-orange-500 tracking-[0.4em] flex items-center gap-2">
             <Wind size={14} /> Technical Intelligence
@@ -207,7 +224,6 @@ export default function EditAssetForm({ initialData }: { initialData: any }) {
           </div>
         </div>
 
-        {/* LOGISTICS */}
         <div className="space-y-6">
           <h3 className="text-[10px] font-black uppercase text-orange-500 tracking-[0.4em] flex items-center gap-2">
             <Scaling size={14} /> Logistics
@@ -229,7 +245,6 @@ export default function EditAssetForm({ initialData }: { initialData: any }) {
         </div>
       </div>
 
-      {/* COMPLIANCE */}
       <div className="space-y-6">
           <h3 className="text-[10px] font-black uppercase text-orange-500 tracking-[0.4em] flex items-center gap-2">
             <Settings2 size={14} /> Compliance
@@ -241,7 +256,6 @@ export default function EditAssetForm({ initialData }: { initialData: any }) {
           </div>
       </div>
 
-      {/* ACTION BAR */}
       <div className="flex justify-between items-center pt-10 border-t border-white/5">
         <button 
           type="button" 
@@ -255,10 +269,10 @@ export default function EditAssetForm({ initialData }: { initialData: any }) {
         <button 
           type="submit" 
           disabled={loading || isCompressing || isDeleting} 
-          className="bg-orange-500 text-black px-12 py-4 rounded-full font-black uppercase text-[11px] tracking-[0.3em] hover:scale-105 transition-all flex items-center gap-2"
+          className="bg-orange-500 text-black px-12 py-4 rounded-full font-black uppercase text-[11px] tracking-[0.3em] hover:scale-105 transition-all flex items-center gap-2 shadow-[0_0_30px_rgba(249,115,22,0.3)]"
         >
           {loading || isCompressing ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />} 
-          {isCompressing ? "Compressing..." : "Commit Changes"}
+          {isCompressing ? "Compressing..." : "Commit Overrides"}
         </button>
       </div>
     </form>
