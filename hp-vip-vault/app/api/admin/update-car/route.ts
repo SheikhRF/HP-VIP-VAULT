@@ -61,7 +61,7 @@ export async function POST(req: Request) {
         "engine_capacity", "curb_weight", "cylinder_layout", "drive_wheels", 
         "engine_power", "fuel_tank_capacity", "gearbox_type", "max_speed", 
         "max_torque", "max_trunk_capacity", "number_of_cylinders", 
-        "number_of_gears", "number_of_seats", "mileage", "price", "location"
+        "number_of_gears", "number_of_seats", "mileage", "price", "location","service_date"
       ];
 
       fields.forEach((field) => {

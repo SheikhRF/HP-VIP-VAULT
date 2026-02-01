@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { 
-  Plus, Loader2, Wind, Scaling, MapPin, Search, Database, Camera, X, ChevronLeft, PoundSterling, Gauge, ShieldAlert, CheckCircle2 
+  Plus, Loader2, Wind, Scaling, MapPin, Search, Database, Camera, X, ChevronLeft, PoundSterling, Gauge, ShieldAlert, CheckCircle2, Calendar 
 } from "lucide-react";
 import imageCompression from 'browser-image-compression'; 
 
@@ -19,7 +19,8 @@ export default function AddAssetForm() {
     location: "",
     price: null as number | null,
     mileage: null as number | null,
-    selectedTrim: ""
+    selectedTrim: "",
+    service_date: "",
   });
 
   const [trims, setTrims] = useState<any[]>([]);
@@ -184,6 +185,7 @@ export default function AddAssetForm() {
           <Field label="Location" name="location" value={formData.location} onChange={handleChange} icon={<MapPin size={8} />} />
           <Field label="Price (£)" name="price" type="number" value={formData.price ?? ""} onChange={handleChange} icon={<PoundSterling size={10} />} />
           <Field label="Mileage" name="mileage" type="number" value={formData.mileage ?? ""} onChange={handleChange} icon={<Gauge size={10} />} />
+          <Field label="Service Date" name="service_date" type="date" value={formData.service_date ?? ""} onChange={handleChange} icon={<Calendar size={10} />} />
         </div>
       </div>
 

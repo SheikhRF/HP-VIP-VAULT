@@ -4,7 +4,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { 
-  Save, Trash2, Loader2, Wind, Scaling, Coins, MapPin, Settings2, ShieldAlert, Camera, X, Plus 
+  Save, Trash2, Loader2, Wind, Scaling, Coins, MapPin, Settings2, ShieldAlert, Camera, X, Plus, 
+  Calendar
 } from "lucide-react";
 import imageCompression from 'browser-image-compression'; 
 
@@ -253,6 +254,7 @@ export default function EditAssetForm({ initialData }: { initialData: any }) {
               <Field label="MOT" name="mot" value={formData.mot} onChange={handleChange} />
               <Field label="Tax" name="tax_status" value={formData.tax_status} onChange={handleChange} />
               <Field label="Due" name="tax_due_date" value={formData.tax_due_date} onChange={handleChange} />
+              <Field label="Service Date" name="service_date" type="date" value={formData.service_date ?? ""} onChange={handleChange} icon={<Calendar size={10} />} />
           </div>
       </div>
 

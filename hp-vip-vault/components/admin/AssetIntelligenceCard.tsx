@@ -5,7 +5,7 @@ import { useRef, useState } from "react";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Gauge, Zap, ChevronRight, AlertTriangle, ShieldCheck, Activity, Banknote, Coins, CreditCard} from "lucide-react";
+import { Gauge, Zap, ChevronRight, AlertTriangle, ShieldCheck, Activity, Banknote, Coins, CreditCard, Calendar} from "lucide-react";
 
 export default function AssetIntelligenceCard({ car }: { car: any }) {
   const divRef = useRef<HTMLDivElement>(null);
@@ -28,7 +28,7 @@ export default function AssetIntelligenceCard({ car }: { car: any }) {
 };
 
 
-  const isCritical = car.mot !== "Valid" && car.mot !== "No details held by DVLA" || car.tax_status !== "Taxed" && car.tax_status !== "SORN";
+  const isCritical = car.mot !== "Valid" && car.mot !== "No details held by DVLA" || car.tax_status !== "Taxed" && car.tax_status !== "SORN" ||new Date(car.service_date) < new Date() && car.service_date !== null;
 
   return (
     <Card 
@@ -101,7 +101,18 @@ export default function AssetIntelligenceCard({ car }: { car: any }) {
               {car.tax_status || "UNKNOWN"}
             </span>
           </div>
+
+
+          <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-widest">
+            <span className="text-gray-500 flex items-center gap-1"><Calendar size={10}/> Service Date</span>
+            <span className={car.service_date && new Date(car.service_date) > new Date() ? "text-green-500" : car.service_date === null ? "text-white-500" : "text-orange-500 font-black"}>
+              {car.service_date ? new Date(car.service_date).toLocaleDateString() : "UNKNOWN"}
+            </span>
+          </div>
+
         </div>
+
+        
 
         <Link 
           href={`/admin/cars/${car.car_id}`}
