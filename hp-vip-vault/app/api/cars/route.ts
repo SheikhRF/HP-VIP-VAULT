@@ -55,7 +55,6 @@ async function fetchTopDetails(make: string, model: string, trim: string) {
   return data[0];
 }
 
-// DVLA helper
 async function fetchDVLA(registrationNumber: string) {
   const key = process.env.DVLA_VES_KEY;
   if (!key) throw new Error("Missing DVLA_VES_KEY");
@@ -74,12 +73,7 @@ async function fetchDVLA(registrationNumber: string) {
   );
 
   const text = await res.text();
-
-  if (!res.ok) {
-    // DVLA returns JSON errors but to be safe we return raw text too
-    throw new Error(`DVLA error (${res.status}): ${text}`);
-  }
-
+  if (!res.ok) throw new Error(`DVLA error (${res.status}): ${text}`);
   return JSON.parse(text);
 }
 
@@ -93,74 +87,32 @@ export async function POST(req: Request) {
   const mileage = form.get("mileage");
 
   if (!make || !model || !trim) {
-    return NextResponse.json(
-      { ok: false, error: "Missing make/model/trim" },
-      { status: 400 }
-    );
+    return NextResponse.json({ ok: false, error: "Missing make/model/trim" }, { status: 400 });
   }
 
   const registrationRaw = String(form.get("registration") ?? "").trim();
   const locationRaw = String(form.get("location") ?? "").trim();
-
   const registration = registrationRaw ? normalizeReg(registrationRaw) : null;
   const location = locationRaw || null;
 
   const files = form.getAll("photos").filter((v): v is File => v instanceof File);
   if (files.length === 0) {
-    return NextResponse.json(
-      { ok: false, error: "Please upload at least 1 photo" },
-      { status: 400 }
-    );
+    return NextResponse.json({ ok: false, error: "Please upload at least 1 photo" }, { status: 400 });
   }
 
-  // 1) get top specs
+  // 1) Get technical intelligence data
   const top = await fetchTopDetails(make, model, trim);
   const specs: Record<string, string> = top.specifications ?? {};
 
-  // 2) upload photos to Supabase Storage
-  const bucket = "car-images";
-  const uploadedUrls: string[] = [];
-
-  for (let i = 0; i < files.length; i++) {
-    const file = files[i];
-
-    if (file.size > 20 * 1024 * 1024) {
-      return NextResponse.json(
-        { ok: false, error: `Photo ${i + 1} is too large (max 20MB)` },
-        { status: 400 }
-      );
-    }
-
-    const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
-    const path = `${make}-${model}/${Date.now()}-${i}.${ext}`;
-
-    const { error: upErr } = await supabase.storage
-      .from(bucket)
-      .upload(path, await file.arrayBuffer(), {
-        contentType: file.type || "image/jpeg",
-        upsert: false,
-      });
-
-    if (upErr) {
-      return NextResponse.json(
-        { ok: false, error: `Upload failed: ${upErr.message}` },
-        { status: 500 }
-      );
-    }
-
-    const { data } = supabase.storage.from(bucket).getPublicUrl(path);
-    uploadedUrls.push(data.publicUrl);
-  }
-
-  // 3) build DB row (specs + photos)
+  // 2) Build DB row for initial insertion
   const row: Record<string, any> = {
     make: top.make ?? make,
     model: top.model ?? model,
-    pictures: uploadedUrls, //  text[] column
-    registration,           // can be null
+    registration,
     location,
     price,
-    mileage,                // can be null 
+    mileage,
+    pictures: [], // Empty initially until we get the ID
   };
 
   for (const [dbField, apiKey] of Object.entries(SPEC_MAP)) {
@@ -171,39 +123,69 @@ export async function POST(req: Request) {
   row.number_of_gears = parseInt(row.number_of_gears, 10) || null;
   row.number_of_seats = parseInt(row.number_of_seats, 10) || null;
 
-  // 4) DVLA enrichment (only if registration provided)
+  // DVLA enrichment
   if (registration) {
     try {
       const dvla = await fetchDVLA(registration);
-
-      // Only the DVLA fields you said you want:
       row.year_of_manufacture = dvla.yearOfManufacture ?? null;
       row.mot = dvla.motStatus ?? null;
       row.tax_status = dvla.taxStatus ?? null;
       row.tax_due_date = dvla.artEndDate ?? null;
     } catch (e) {
-      // Don’t fail the entire upload if DVLA is down / reg invalid
       console.error("DVLA lookup failed:", e);
     }
   }
 
-  const { data: inserted, error } = await supabase
+  // 3) STEP 1: Insert to get the Database car_id
+  const { data: inserted, error: insertError } = await supabase
     .from("cars")
     .insert(row)
     .select("car_id")
     .single();
 
-  if (error) {
-    return NextResponse.json(
-      { ok: false, error: error.message },
-      { status: 400 }
-    );
+  if (insertError) {
+    return NextResponse.json({ ok: false, error: insertError.message }, { status: 400 });
+  }
+
+  const carId = inserted.car_id;
+
+  // 4) STEP 2: Upload photos to the ID-based folder
+  const bucket = "car-images";
+  const uploadedUrls: string[] = [];
+
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i];
+    const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
+    
+    // Directory is now strictly the car_id
+    const path = `${carId}/${Date.now()}-${i}.${ext}`;
+
+    const { error: upErr } = await supabase.storage
+      .from(bucket)
+      .upload(path, await file.arrayBuffer(), {
+        contentType: file.type || "image/jpeg",
+        upsert: false,
+      });
+
+    if (!upErr) {
+      const { data: urlData } = supabase.storage.from(bucket).getPublicUrl(path);
+      uploadedUrls.push(urlData.publicUrl);
+    }
+  }
+
+  // 5) Final Step: Update the record with the media URLs
+  const { error: updateError } = await supabase
+    .from("cars")
+    .update({ pictures: uploadedUrls })
+    .eq("car_id", carId);
+
+  if (updateError) {
+    return NextResponse.json({ ok: false, error: "Data saved but media links failed" }, { status: 500 });
   }
 
   return NextResponse.json({
     ok: true,
-    car_id: inserted.car_id,
+    car_id: carId,
     pictures: uploadedUrls,
-    dvla_enriched: !!registration,
   });
 }

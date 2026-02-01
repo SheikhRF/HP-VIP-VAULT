@@ -102,9 +102,9 @@ export default async function CarDetailPage({
           </Link>
         </div>
 
-        {/* Cinematic Gallery - UPDATED FOR DYNAMIC WIDTHS */}
+        {/* Cinematic Gallery */}
         <section className="w-full overflow-hidden py-4 border-y border-white/5 bg-black/20">
-            <div className="flex gap-4 overflow-x-auto px-6 no-scrollbar snap-x h-[300px] md:h-[450px]">
+            <div className="flex gap-4 overflow-x-auto px-6 no-scrollbar snap-x h-[300px] md:h-[450px] items-center justify-center">
                 {pictures.map((url, i) => (
                     <div key={i} className="relative h-full shrink-0 snap-center rounded-[2rem] overflow-hidden border border-white/10 shadow-2xl bg-[#1a1a1a]">
                         <img 
