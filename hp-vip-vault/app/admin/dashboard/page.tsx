@@ -5,8 +5,9 @@ import AssetIntelligenceCard from "@/components/admin/AssetIntelligenceCard";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { ShieldAlert, Activity, ArrowLeft } from "lucide-react";
-import { SyncFleetButton } from "@/components/admin/SyncFleetButton"; // New Import
+import { SyncFleetButton } from "@/components/admin/SyncFleetButton"; 
 import Link from "next/link";
+import ServiceReminder from "@/components/admin/ServiceReminder";
 
 export const dynamic = "force-dynamic";
 
@@ -17,7 +18,7 @@ export default async function AdminDashboard() {
   );
 
   const { data: cars } = await supabase.from("cars").select("*");
-  const alerts = cars?.filter(c => c.mot !== "Valid" && c.mot !== "No details held by DVLA" || c.tax_status !== "Taxed" && c.tax_status !== "SORN").length || 0;
+  const alerts = cars?.filter(c => c.mot !== "Valid" && c.mot !== "No details held by DVLA" || c.tax_status !== "Taxed" && c.tax_status !== "SORN" || c.service_date !== null && new Date(c.service_date) < new Date()).length || 0;
 
   const lastSyncTimestamp = cars?.reduce((oldest, car) => {
     if (!car.last_synced_at) return oldest;
@@ -53,7 +54,7 @@ export default async function AdminDashboard() {
               </div>
             </div>
           </div>
-
+          <ServiceReminder cars={cars || []} />
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {cars?.map((car) => (
               <AssetIntelligenceCard key={car.car_id} car={car} />
@@ -67,6 +68,7 @@ export default async function AdminDashboard() {
             </div>
           )}
         </div>
+        
       </main>
     </>
   );

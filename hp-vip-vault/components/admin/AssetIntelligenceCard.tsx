@@ -28,7 +28,9 @@ export default function AssetIntelligenceCard({ car }: { car: any }) {
 };
 
 
-  const isCritical = car.mot !== "Valid" && car.mot !== "No details held by DVLA" || car.tax_status !== "Taxed" && car.tax_status !== "SORN" ||new Date(car.service_date) < new Date() && car.service_date !== null;
+  const isCritical = (car.mot !== "Valid" && car.mot !== "No details held by DVLA") || 
+                    (car.tax_status !== "Taxed" && car.tax_status !== "SORN") || 
+                    (car.service_date !== null && new Date(car.service_date) < new Date());
 
   return (
     <Card 
@@ -97,7 +99,7 @@ export default function AssetIntelligenceCard({ car }: { car: any }) {
           
           <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-widest">
             <span className="text-gray-500 flex items-center gap-1"><ShieldCheck size={10}/> Tax Protocol</span>
-            <span className={car.tax_status === "Taxed" ? "text-blue-500" : "text-orange-500 font-black"}>
+            <span className={car.tax_status === "Taxed" ? "text-green-500" : "text-orange-500 font-black"}>
               {car.tax_status || "UNKNOWN"}
             </span>
           </div>
