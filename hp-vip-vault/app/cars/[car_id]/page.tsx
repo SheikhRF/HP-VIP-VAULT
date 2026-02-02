@@ -127,7 +127,7 @@ export default async function CarDetailPage({
                     <div className="h-1 w-8 bg-primary" /> Technical Intelligence
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-2">
-                    <SpecRow label="Acceleration (0-100)" value={car.acceleration_0_100} />
+                    <SpecRow label="Acceleration (0-100km/h)" value={car.acceleration_0_100} />
                     <SpecRow label="Max Speed" value={car.max_speed} />
                     <SpecRow label="Engine Power" value={car.engine_power} />
                     <SpecRow label="Max Torque" value={car.max_torque} />
