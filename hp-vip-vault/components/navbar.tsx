@@ -27,37 +27,36 @@ export default async function Navbar() {
                     </span>
                 </Link>
 
-                <NavigationMenu>
-                    <NavigationMenuList className="flex gap-1 md:gap-4">
+                <nav>
+                    <ul className="flex items-center gap-1 md:gap-4 list-none">
                         {navItems.map((item) => {
-                            const isSpecial = item === "Admin";
-                            const href = `/${item.toLowerCase()}`;
-                            
-                            return (
-                                <NavigationMenuItem key={item} className="flex-shrink-0">
-                                    <NavigationMenuLink asChild>
-                                        <Link
-                                            href={href}
-                                            className={`
-                                                relative px-4 py-2 text-[10px] font-black uppercase tracking-[0.2em] transition-all duration-300 inline-block
-                                                ${isSpecial 
-                                                    ? "text-orange-500 hover:text-white border border-orange-500/30 rounded-full bg-orange-500/5 shadow-[0_0_15px_rgba(249,115,22,0.1)]" 
-                                                    : "text-gray-400 hover:text-white"
-                                                }
-                                            `}
-                                        >
-                                            {item}
-                                            {/* Hover underline effect for standard items */}
-                                            {!isSpecial && (
-                                                <span className="absolute bottom-0 left-1/2 h-[1px] w-0 -translate-x-1/2 bg-orange-500 transition-all duration-300 group-hover:w-1/2" />
-                                            )}
-                                        </Link>
-                                    </NavigationMenuLink>
-                                </NavigationMenuItem>
-                            );
+                        const isSpecial = item === "Admin";
+                        const href = `/${item.toLowerCase()}`;
+                        
+                        return (
+                            <li key={item} className="flex-shrink-0">
+                            <Link
+                                href={href}
+                                className={`
+                                relative px-4 py-2 text-[10px] font-black uppercase tracking-[0.2em] transition-all duration-300 inline-block group
+                                ${isSpecial 
+                                    ? "text-orange-500 hover:text-white border border-orange-500/30 rounded-full bg-orange-500/5 shadow-[0_0_15px_rgba(249,115,22,0.1)]" 
+                                    : "text-gray-400 hover:text-white"
+                                }
+                                `}
+                            >
+                                {item}
+                                
+                                {/* Hover underline effect */}
+                                {!isSpecial && (
+                                <span className="absolute bottom-0 left-1/2 h-[1px] w-0 -translate-x-1/2 bg-orange-500 transition-all duration-300 group-hover:w-1/2" />
+                                )}
+                            </Link>
+                            </li>
+                        );
                         })}
-                    </NavigationMenuList>
-                </NavigationMenu>
+                    </ul>
+                    </nav>
 
                 {/* Status Indicator */}
                 <div className="hidden md:flex items-center gap-4">
