@@ -11,7 +11,7 @@ export default function AboutPage() {
           {/* THE IDENTITY */}
           <section className="max-w-4xl space-y-6">
             <h1 className="text-6xl md:text-8xl font-black italic uppercase tracking-tighter leading-none">
-              The <span className="text-orange-500">Vault</span>
+              About <span className="text-orange-500">The Vault</span>
             </h1>
             <p className="text-[10px] text-gray-500 font-black uppercase tracking-[0.6em] ml-1">
               Digital Car Collection • HP.VIP
