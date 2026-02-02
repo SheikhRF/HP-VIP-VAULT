@@ -12,7 +12,7 @@ export default async function Navbar() {
     // Supporting both 'Role' and 'role' for safety
     const isAdmin = sessionClaims?.Role === "admin" || sessionClaims?.role === "admin";
 
-    const navItems = ["Home", "Cars", "Contact"];
+    const navItems = ["Home","Cars","About","Contact"];
     if (isAdmin) navItems.push("Admin");
 
     return (
