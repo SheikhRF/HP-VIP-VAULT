@@ -3,7 +3,7 @@ import Navbar from "@/components/navbar";
 import { 
   PlusSquare, 
   LayoutDashboard, 
-  ShieldCheck, 
+  Route, 
   ChevronRight, 
   Activity,
   Zap,
@@ -79,6 +79,32 @@ export default function AdminHub() {
             </Link>
 
           </div>
+        <div>
+          <Link href="/admin/trips">
+              <Card className="group relative overflow-hidden bg-[#0d0d0d] border-white/5 p-2 rounded-[2.5rem] hover:border-orange-500/50 transition-all duration-500 h-full">
+                {/* Visual Accent */}
+                <div className="absolute -right-4 -top-4 p-8 opacity-5 group-hover:opacity-20 group-hover:text-orange-500 transition-all">
+                  <Route size={120} />
+                </div>
+
+                <CardHeader className="relative z-10 space-y-6 p-8">
+                  <div className="h-12 w-12 bg-white text-black rounded-2xl flex items-center justify-center shadow-[0_0_20px_rgba(255,255,255,0.1)]">
+                    <Route size={24} />
+                  </div>
+                  <div>
+                    <CardTitle className="text-4xl font-black italic uppercase tracking-tighter text-white">Trips</CardTitle>
+                    <CardDescription className="text-[10px] uppercase font-bold text-gray-500 tracking-widest mt-2 leading-relaxed">
+                      Track every use of the Collection.
+                    </CardDescription>
+                  </div>
+                  <div className="flex items-center gap-2 text-orange-500 text-[10px] font-black uppercase tracking-[0.2em] pt-4">
+                    Check Journeys <ChevronRight size={14} />
+                  </div>
+                </CardHeader>
+              </Card>
+            </Link>
+
+        </div>
         <section className="flex flex-col items-center pt-12 space-y-12">
             <div className="text-center">
               <p className="text-xl md:text-2xl font-black italic text-white uppercase tracking-tighter mb-2">
