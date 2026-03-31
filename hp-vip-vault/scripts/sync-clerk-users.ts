@@ -13,7 +13,10 @@
  */
 
 import { createClient } from "@supabase/supabase-js";
-    
+import { config } from "dotenv";
+
+// Load .env.local
+config({ path: ".env.local" });
 
 const CLERK_SECRET_KEY = process.env.CLERK_SECRET_KEY;
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
