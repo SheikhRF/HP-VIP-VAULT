@@ -3,10 +3,11 @@ import { headers } from 'next/headers';
 import { WebhookEvent } from '@clerk/nextjs/server';
 import { createClient } from '@supabase/supabase-js';
 
-// Initialize Supabase with Service Role to bypass RLS for background syncing
+export const dynamic = 'force-dynamic';
+
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY! 
+  process.env.SUPABASE_SECRET_KEY!
 );
 
 export async function POST(req: Request) {
@@ -49,20 +50,22 @@ export async function POST(req: Request) {
   const eventType = evt.type;
 
   if (eventType === 'user.created' || eventType === 'user.updated') {
-    const { id, first_name, last_name, email_addresses } = evt.data;
+    const { id, first_name, last_name, email_addresses, public_metadata } = evt.data;
     
-    // Map Clerk data to your schema: Combine names for the 'name' column
     const fullName = `${first_name ?? ''} ${last_name ?? ''}`.trim();
     const primaryEmail = email_addresses?.[0]?.email_address;
+
+    // Pull role from public_metadata, fall back to 'user'
+    const role = (public_metadata as Record<string, any>)?.role ?? 'user';
 
     const { error } = await supabase
       .from('profiles')
       .upsert({
-        id: id, // Maps Clerk User ID to your primary key
+        id,
         name: fullName || 'Unknown Member',
         email: primaryEmail,
+        role,
         updated_at: new Date().toISOString()
-        // 'role' will default to 'user' via your SQL schema if not provided
       }, { onConflict: 'id' });
 
     if (error) {
