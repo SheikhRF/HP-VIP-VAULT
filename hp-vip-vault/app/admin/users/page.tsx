@@ -4,7 +4,7 @@ import { createClient } from "@supabase/supabase-js";
 import Navbar from "@/components/navbar";
 import GlowCopy from "@/components/ui/glow-copy";
 import Link from "next/link"; // Added for navigation
-import { Users, Shield, UserPlus, MoreHorizontal, Route } from "lucide-react";
+import { Users, Shield, UserPlus, MoreHorizontal, Route, ArrowLeft } from "lucide-react";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -52,7 +52,10 @@ export default async function AdminUsersPage() {
       <Navbar />
       <main className="min-h-screen bg-background text-white pt-32 pb-20 px-6">
         <div className="max-w-7xl mx-auto space-y-12">
-          
+          <Link href="/admin/" className="flex items-center gap-2 text-gray-500 hover:text-orange-500 text-[9px] font-black uppercase tracking-widest transition-colors">
+                <ArrowLeft size={12} /> Back to Hub
+          </Link>
+
           {/* HEADER */}
           <div className="flex flex-col md:flex-row justify-between items-end gap-6 border-b border-white/5 pb-12">
             <div className="space-y-4">
@@ -64,14 +67,6 @@ export default async function AdminUsersPage() {
               </p>
             </div>
             
-            <a 
-              href="https://dashboard.clerk.com" 
-              target="_blank"
-              className="group flex items-center gap-3 px-6 py-3 bg-orange-500 text-black rounded-full transition-all hover:scale-105 active:scale-95 shadow-[0_0_20px_rgba(249,115,22,0.3)]"
-            >
-              <UserPlus size={16} strokeWidth={3} />
-              <span className="text-[10px] font-black uppercase tracking-widest">Invite New Member</span>
-            </a>
           </div>
 
           {/* USERS TABLE */}
