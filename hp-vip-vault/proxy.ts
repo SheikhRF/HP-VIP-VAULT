@@ -19,6 +19,11 @@ export default clerkMiddleware(async (auth, req) => {
   const { pathname } = req.nextUrl;
   const isApiRoute = pathname.startsWith("/api") || pathname.startsWith("/trpc");
 
+  // 3. Protect all other non-public routes
+  if (!isPublicRoute(req)) {
+    await auth.protect();
+  }
+
   // 1. Check Admin Routes FIRST (for both Pages and APIs)
   if (isAdminRoute(req)) {
     const { sessionClaims } = await auth();
@@ -41,10 +46,8 @@ export default clerkMiddleware(async (auth, req) => {
     return NextResponse.next();
   }
 
-  // 3. Protect all other non-public routes
-  if (!isPublicRoute(req)) {
-    await auth.protect();
-  }
+  
+  
 });
 
 export const config = {
