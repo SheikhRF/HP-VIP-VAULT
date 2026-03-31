@@ -3,7 +3,7 @@
  * Syncs all existing Clerk users into the Supabase profiles table.
  *
  * Usage:
- *   1. npm install -g tsx   (if not already installed)
+ *   1. npm install -D tsx dotenv
  *   2. npx tsx scripts/sync-clerk-users.ts
  *
  * Make sure your .env.local has:
@@ -15,7 +15,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { config } from "dotenv";
 
-// Load .env.local
 config({ path: ".env.local" });
 
 const CLERK_SECRET_KEY = process.env.CLERK_SECRET_KEY;
@@ -66,7 +65,6 @@ async function fetchAllClerkUsers() {
 async function syncUsers() {
   console.log("🚀 Starting Clerk → Supabase user migration...\n");
 
-  // 1. Fetch all users from Clerk
   console.log("📋 Fetching users from Clerk...");
   const clerkUsers = await fetchAllClerkUsers();
   console.log(`✅ Found ${clerkUsers.length} Clerk users\n`);
@@ -76,27 +74,32 @@ async function syncUsers() {
     return;
   }
 
-  // 2. Map to profiles schema
   const profiles = clerkUsers.map((user) => {
     const firstName = user.first_name ?? "";
     const lastName = user.last_name ?? "";
     const fullName = `${firstName} ${lastName}`.trim() || "Unknown Member";
     const primaryEmail = user.email_addresses?.[0]?.email_address ?? null;
 
+    // Pull role from public_metadata, normalise to lowercase, fall back to 'user'
+    const meta = (user.public_metadata ?? {}) as Record<string, any>;
+    const role = (meta?.role ?? meta?.Role ?? "user").toLowerCase();
+
+    console.log(`  👤 ${fullName} (${primaryEmail}) → role: ${role}`);
+
     return {
       id: user.id,
       name: fullName,
       email: primaryEmail,
+      role,
       updated_at: new Date().toISOString(),
     };
   });
 
-  // 3. Upsert in batches of 50
   const BATCH_SIZE = 50;
   let successCount = 0;
   let errorCount = 0;
 
-  console.log(`📤 Upserting ${profiles.length} profiles into Supabase...`);
+  console.log(`\n📤 Upserting ${profiles.length} profiles into Supabase...`);
 
   for (let i = 0; i < profiles.length; i += BATCH_SIZE) {
     const batch = profiles.slice(i, i + BATCH_SIZE);
@@ -114,7 +117,6 @@ async function syncUsers() {
     }
   }
 
-  // 4. Summary
   console.log("\n--- MIGRATION COMPLETE ---");
   console.log(`✅ Successfully synced: ${successCount} users`);
   if (errorCount > 0) {

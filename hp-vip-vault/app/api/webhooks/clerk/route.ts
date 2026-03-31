@@ -55,8 +55,9 @@ export async function POST(req: Request) {
     const fullName = `${first_name ?? ''} ${last_name ?? ''}`.trim();
     const primaryEmail = email_addresses?.[0]?.email_address;
 
-    // Pull role from public_metadata, fall back to 'user'
-    const role = (public_metadata as Record<string, any>)?.role ?? 'user';
+    // Pull role from public_metadata, normalise to lowercase, fall back to 'user'
+    const meta = public_metadata as Record<string, any>;
+    const role = (meta?.role ?? meta?.Role ?? 'user').toLowerCase();
 
     const { error } = await supabase
       .from('profiles')
