@@ -3,7 +3,8 @@ import { redirect } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
 import Navbar from "@/components/navbar";
 import TripList from "@/components/admin/trip-list";
-import { Zap, Star, History } from "lucide-react";
+import { Zap, Star, History, ArrowLeft } from "lucide-react";
+import Link from "next/link";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -79,7 +80,9 @@ export default async function AdminTripsPage() {
       <Navbar />
       <main className="min-h-screen bg-background text-white pt-32 pb-20 px-6">
         <div className="max-w-7xl mx-auto space-y-12">
-          
+          <Link href="/admin/" className="flex items-center gap-2 text-gray-500 hover:text-orange-500 text-[9px] font-black uppercase tracking-widest transition-colors">
+                <ArrowLeft size={12} /> Back to Hub
+          </Link>
           <header className="space-y-4">
             <h1 className="text-6xl md:text-8xl font-black italic uppercase tracking-tighter leading-none">
               Deployment <span className="text-orange-500">Archive</span>
