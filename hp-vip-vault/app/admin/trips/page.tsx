@@ -7,61 +7,72 @@ import { Zap, Star, History } from "lucide-react";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
+  process.env.SUPABASE_SECRET_KEY!
 );
+
+interface GainerStats {
+  name: string;
+  gain: number;
+}
+
+export const dynamic = "force-dynamic";
 
 export default async function AdminTripsPage() {
   const { userId } = await auth();
   if (!userId) redirect("/sign-in");
 
-  // 1. Get Weekly Stats (Manual Join for Stability)
+  // 1. Fetch Raw Data in Parallel
   const oneWeekAgo = new Date();
   oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
 
-  const { data: rawTrips } = await supabase
-    .from("trips")
-    .select("*")
-    .gt("created_at", oneWeekAgo.toISOString());
+  const [
+    { data: rawTrips },
+    { data: allCars },
+    { data: allProfiles }
+  ] = await Promise.all([
+    supabase.from("trips").select("*").order("start_date", { ascending: false }),
+    supabase.from("cars").select("*"),
+    supabase.from("profiles").select("id, name")
+  ]);
 
-  const { data: allCars } = await supabase.from("cars").select("*");
-
-  // Find Biggest Gainer Logic
-  let biggestGainer = null;
+  // 2. Logic: Find Weekly Top Gainer
+  let biggestGainer: GainerStats | null = null;
   let maxGain = 0;
 
-  if (rawTrips && allCars) {
-    rawTrips.forEach(trip => {
-      const gain = (trip.end_mileage || 0) - (trip.start_mileage || 0);
-      if (gain > maxGain) {
-        maxGain = gain;
-        const carMatch = allCars.find(c => c.id === trip.car_id);
-        biggestGainer = { ...trip, car_name: carMatch ? `${carMatch.make} ${carMatch.model}` : "Unknown Asset" };
-      }
-    });
-  }
+  const weeklyTrips = rawTrips?.filter(t => new Date(t.start_date) > oneWeekAgo);
 
-  // 2. Highest Rated Car (Using 'rating' column or 'id' as fallback)
-  const { data: topCar } = await supabase
-    .from("cars")
-    .select("*")
-    .order("rating", { ascending: false }) // Ensure you have a 'rating' column in Supabase
-    .limit(1)
-    .single();
+  weeklyTrips?.forEach(trip => {
+    // Fixed: use mileage_after/mileage_before to match your schema
+    const gain = (Number(trip.mileage_after) || 0) - (Number(trip.mileage_before) || 0);
+    if (gain > maxGain) {
+      maxGain = gain;
+      const car = allCars?.find(c => c.car_id === trip.car_id);
+      biggestGainer = {
+        name: car ? `${car.make} ${car.model}` : "Unknown Asset",
+        gain,
+      };
+    }
+  });
 
-  // 3. Initial 10 Trips (Manual Join to ensure they show up)
-  const { data: initialTripsRaw } = await supabase
-    .from("trips")
-    .select("*")
-    .order("created_at", { ascending: false })
-    .limit(10);
+  // Cast to fix TypeScript "never" inference on reassigned vars
+  const gainer = biggestGainer as GainerStats | null;
 
-  const { data: allProfiles } = await supabase.from("profiles").select("id, name");
+  // 3. Logic: Highest Rated Asset
+  const topRatedCar = allCars
+    ?.slice()
+    .sort((a, b) => (b.rating || 0) - (a.rating || 0))[0];
 
-  const initialTrips = initialTripsRaw?.map(trip => ({
-    ...trip,
-    car_details: allCars?.find(c => c.id === trip.car_id),
-    user_name: allProfiles?.find(p => p.id === trip.user_id)?.name || "Unknown Driver"
-  }));
+  // 4. Flatten Data for the Client Component
+  const initialTrips = (rawTrips?.slice(0, 10) || []).map(trip => {
+    const car = allCars?.find(c => c.car_id === trip.car_id);
+    const user = allProfiles?.find(p => p.id === trip.user_id);
+    return {
+      ...trip,
+      car_name: car ? `${car.make} ${car.model}` : "Deleted Asset",
+      car_plate: car?.registration || "N/A",
+      user_name: user?.name || "Unknown Driver",
+    };
+  });
 
   return (
     <>
@@ -71,49 +82,48 @@ export default async function AdminTripsPage() {
           
           <header className="space-y-4">
             <h1 className="text-6xl md:text-8xl font-black italic uppercase tracking-tighter leading-none">
-              Deployment <span className="text-orange-500 text-glow-orange">Archive</span>
+              Deployment <span className="text-orange-500">Archive</span>
             </h1>
           </header>
 
-          {/* TOP STATS */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Biggest Gainer Card */}
+            {/* Top Gainer Card */}
             <div className="bg-white/[0.02] border border-white/5 p-10 rounded-[2.5rem] relative overflow-hidden group">
               <Zap className="absolute -right-6 -top-6 text-orange-500 opacity-5 group-hover:opacity-15 transition-all" size={180} />
               <div className="relative z-10 space-y-2">
                 <p className="text-[8px] font-black text-orange-500 uppercase tracking-[0.4em]">Weekly Top Gainer</p>
                 <h3 className="text-5xl font-black italic uppercase">
-                  {biggestGainer?.car_name || "No Sorties"}
+                  {gainer?.name || "No Sorties"}
                 </h3>
-                <p className="text-2xl font-black text-white italic">
-                  +{maxGain} <span className="text-gray-600 text-sm italic">MILES GAINED</span>
+                <p className="text-2xl font-black text-white italic uppercase">
+                  +{gainer?.gain || 0}{" "}
+                  <span className="text-gray-600 text-sm tracking-widest ml-2">Miles Gained</span>
                 </p>
               </div>
             </div>
 
-            {/* Highest Rated Card */}
+            {/* Top Rated Card */}
             <div className="bg-white/[0.02] border border-white/5 p-10 rounded-[2.5rem] relative overflow-hidden group">
               <Star className="absolute -right-6 -top-6 text-white opacity-5 group-hover:opacity-15 transition-all" size={180} />
               <div className="relative z-10 space-y-2">
                 <p className="text-[8px] font-black text-gray-500 uppercase tracking-[0.4em]">Highest Rated Asset</p>
                 <h3 className="text-5xl font-black italic uppercase">
-                  {topCar ? `${topCar.make} ${topCar.model}` : "Pending Data"}
+                  {topRatedCar ? `${topRatedCar.make} ${topRatedCar.model}` : "Pending Data"}
                 </h3>
                 <p className="text-2xl font-black text-orange-500 italic uppercase">
-                   {topCar?.rating || "N/A"} <span className="text-gray-600 text-sm italic underline decoration-orange-500/50">Performance Score</span>
+                  {topRatedCar?.rating || "0.0"}{" "}
+                  <span className="text-gray-600 text-sm italic tracking-widest ml-2">Score</span>
                 </p>
               </div>
             </div>
           </div>
 
-          {/* TRIP LIST */}
           <div className="space-y-8 pt-10">
-             <div className="flex items-center gap-4">
-               <History size={18} className="text-orange-500" />
-               <h2 className="text-[10px] font-black uppercase text-gray-500 tracking-[0.5em]">Full Operational History</h2>
-             </div>
-             
-             <TripList initialTrips={initialTrips || []} />
+            <div className="flex items-center gap-4">
+              <History size={18} className="text-orange-500" />
+              <h2 className="text-[10px] font-black uppercase text-gray-500 tracking-[0.5em]">Operational History</h2>
+            </div>
+            <TripList initialTrips={initialTrips} />
           </div>
 
         </div>
