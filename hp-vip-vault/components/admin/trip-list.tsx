@@ -2,9 +2,8 @@
 
 import { useState } from "react";
 import { createClient } from "@supabase/supabase-js";
-import { ArrowUpRight, Route } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 
-// Use Anon Key for client component
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -18,27 +17,25 @@ export default function TripList({ initialTrips }: { initialTrips: any[] }) {
   const loadMore = async () => {
     setLoading(true);
     
-    // Fetch next batch
     const { data: rawData } = await supabase
       .from("trips")
       .select("*")
-      .order("created_at", { ascending: false })
+      .order("start_date", { ascending: false })  // ← fixed
       .range(trips.length, trips.length + 9);
 
     if (rawData && rawData.length > 0) {
-      // Since we need names, we do a quick parallel fetch for metadata
       const [cars, profiles] = await Promise.all([
-        supabase.from("cars").select("id, make, model, plate"),
+        supabase.from("cars").select("car_id, make, model, registration"),  // ← fixed
         supabase.from("profiles").select("id, name")
       ]);
 
       const formatted = rawData.map(trip => {
-        const car = cars.data?.find(c => c.id === trip.car_id);
+        const car = cars.data?.find(c => c.car_id === trip.car_id);  // ← fixed
         const user = profiles.data?.find(p => p.id === trip.user_id);
         return {
           ...trip,
           car_name: car ? `${car.make} ${car.model}` : "Asset Deleted",
-          car_plate: car?.plate || "N/A",
+          car_plate: car?.registration || "N/A",  // ← fixed
           user_name: user?.name || "Unknown Driver"
         };
       });
@@ -57,7 +54,7 @@ export default function TripList({ initialTrips }: { initialTrips: any[] }) {
         <table className="w-full text-left">
           <tbody className="divide-y divide-white/5">
             {trips.map((trip) => (
-              <tr key={trip.id} className="group hover:bg-white/[0.01] transition-all">
+              <tr key={trip.trip_id} className="group hover:bg-white/[0.01] transition-all">  
                 <td className="px-8 py-8">
                   <p className="text-[8px] font-black text-gray-600 uppercase tracking-widest mb-1">Asset</p>
                   <p className="text-sm font-black italic uppercase text-white group-hover:text-orange-500 transition-colors">
@@ -72,13 +69,13 @@ export default function TripList({ initialTrips }: { initialTrips: any[] }) {
                 <td className="px-8 py-8">
                   <p className="text-[8px] font-black text-gray-600 uppercase tracking-widest mb-1">Distance</p>
                   <p className="text-sm font-black italic text-orange-500">
-                    +{Number(trip.end_mileage) - Number(trip.start_mileage)} MI
+                    +{Number(trip.mileage_after) - Number(trip.mileage_before)} MI  {/* ← fixed */}
                   </p>
                 </td>
                 <td className="px-8 py-8 text-right">
-                   <p className="text-[10px] font-black text-gray-700 uppercase italic">
-                     {new Date(trip.created_at).toLocaleDateString()}
-                   </p>
+                  <p className="text-[10px] font-black text-gray-700 uppercase italic">
+                    {new Date(trip.start_date).toLocaleDateString()}  {/* ← fixed */}
+                  </p>
                 </td>
               </tr>
             ))}
