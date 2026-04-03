@@ -32,7 +32,7 @@ export default function AdminHub() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             
             {/* 01. Induction Gateway */}
-            <Link href="/cars/add">
+            <Link href="/admin/induct-selection">
               <Card className="group relative overflow-hidden bg-[#0d0d0d] border-white/5 p-2 rounded-[2.5rem] hover:border-orange-500/50 transition-all duration-500 h-full">
                 <div className="absolute -right-4 -top-4 p-8 opacity-5 group-hover:opacity-20 group-hover:text-orange-500 transition-all">
                   <PlusSquare size={120} />
