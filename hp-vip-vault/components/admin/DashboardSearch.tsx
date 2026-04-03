@@ -12,7 +12,7 @@ export default function DashboardSearch({ cars }: { cars: any[] }) {
 
   const isDriveable = (car: any) => {
     const validMot = car.mot === "Valid" || car.mot === "No details held by DVLA";
-    const validTax = car.tax_status === "Taxed" || car.tax_status === "SORN";
+    const validTax = car.tax_status === "Taxed";
     return validMot && validTax;
   };
 
