@@ -1,22 +1,94 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Search, X } from "lucide-react";
+import { Search, X, CheckCircle2, AlertTriangle, Car } from "lucide-react";
 import AssetIntelligenceCard from "@/components/admin/AssetIntelligenceCard";
+
+type FilterType = "all" | "driveable" | "attention";
 
 export default function DashboardSearch({ cars }: { cars: any[] }) {
   const [searchQuery, setSearchQuery] = useState("");
+  const [activeFilter, setActiveFilter] = useState<FilterType>("all");
+
+  const isDriveable = (car: any) => {
+    const validMot = car.mot === "Valid" || car.mot === "No details held by DVLA";
+    const validTax = car.tax_status === "Taxed" || car.tax_status === "SORN";
+    return validMot && validTax;
+  };
+
+  const needsAttention = (car: any) => !isDriveable(car);
 
   const filteredCars = useMemo(() => {
-    if (!searchQuery) return cars;
-    return cars.filter((car) => {
-      const searchStr = `${car.make} ${car.model} ${car.registration}`.toLowerCase();
-      return searchStr.includes(searchQuery.toLowerCase());
-    });
-  }, [searchQuery, cars]);
+    let result = cars;
+
+    // Apply filter
+    if (activeFilter === "driveable") result = result.filter(isDriveable);
+    if (activeFilter === "attention") result = result.filter(needsAttention);
+
+    // Apply search on top of filter
+    if (searchQuery) {
+      result = result.filter((car) => {
+        const searchStr = `${car.make} ${car.model} ${car.registration ?? ""}`.toLowerCase();
+        return searchStr.includes(searchQuery.toLowerCase());
+      });
+    }
+
+    return result;
+  }, [searchQuery, activeFilter, cars]);
+
+  const driveableCount = cars.filter(isDriveable).length;
+  const attentionCount = cars.filter(needsAttention).length;
+
+  const filters: { key: FilterType; label: string; count: number; icon: any; activeClass: string }[] = [
+    {
+      key: "all",
+      label: "All Assets",
+      count: cars.length,
+      icon: Car,
+      activeClass: "bg-white text-black border-white",
+    },
+    {
+      key: "driveable",
+      label: "Driveable",
+      count: driveableCount,
+      icon: CheckCircle2,
+      activeClass: "bg-green-500/20 text-green-400 border-green-500/40",
+    },
+    {
+      key: "attention",
+      label: "Needs Attention",
+      count: attentionCount,
+      icon: AlertTriangle,
+      activeClass: "bg-red-500/20 text-red-400 border-red-500/40",
+    },
+  ];
 
   return (
     <div className="space-y-6">
+
+      {/* FILTER PILLS */}
+      <div className="flex flex-wrap gap-3">
+        {filters.map(({ key, label, count, icon: Icon, activeClass }) => (
+          <button
+            key={key}
+            onClick={() => setActiveFilter(key)}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-full border text-[9px] font-black uppercase tracking-widest transition-all ${
+              activeFilter === key
+                ? activeClass
+                : "bg-white/[0.02] border-white/10 text-gray-500 hover:border-white/20 hover:text-gray-300"
+            }`}
+          >
+            <Icon size={11} />
+            {label}
+            <span className={`ml-1 px-2 py-0.5 rounded-full text-[8px] font-black ${
+              activeFilter === key ? "bg-black/20" : "bg-white/5"
+            }`}>
+              {count}
+            </span>
+          </button>
+        ))}
+      </div>
+
       {/* SEARCH BAR */}
       <div className="relative">
         <Search
@@ -41,7 +113,7 @@ export default function DashboardSearch({ cars }: { cars: any[] }) {
       </div>
 
       {/* RESULTS COUNT */}
-      {searchQuery && (
+      {(searchQuery || activeFilter !== "all") && (
         <p className="text-[9px] font-black uppercase tracking-widest text-gray-600">
           {filteredCars.length} asset{filteredCars.length !== 1 ? "s" : ""} found
         </p>
