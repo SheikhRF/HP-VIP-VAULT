@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
+import { requireAdmin } from "@/lib/auth/requireAdmin";
 
 // Initialize Supabase with Service Role for bypass permissions
 function getSupabase() {
@@ -10,6 +11,9 @@ function getSupabase() {
 }
 
 export async function POST(req: Request) {
+  const check = await requireAdmin();
+  if (!check.ok) return check.response;
+
   const supabase = getSupabase();
   const contentType = req.headers.get("content-type") || "";
 

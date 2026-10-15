@@ -1,16 +1,13 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { auth } from "@clerk/nextjs/server";
+import { requireAdmin } from "@/lib/auth/requireAdmin";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
-  const { userId, sessionClaims } = await auth();
-  if (!userId) return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
-
-  const isAdmin = sessionClaims?.role === "admin" || sessionClaims?.Role === "admin";
-  if (!isAdmin) return NextResponse.json({ ok: false, error: "Forbidden" }, { status: 403 });
+  const check = await requireAdmin();
+  if (!check.ok) return check.response;
 
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,

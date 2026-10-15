@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { requireAdmin } from "@/lib/auth/requireAdmin";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -78,6 +79,9 @@ async function fetchDVLA(registrationNumber: string) {
 }
 
 export async function POST(req: Request) {
+  const check = await requireAdmin();
+  if (!check.ok) return check.response;
+
   const form = await req.formData();
 
   const make = String(form.get("make") ?? "").trim();

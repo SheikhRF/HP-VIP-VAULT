@@ -1,9 +1,13 @@
 import { NextResponse } from "next/server";
+import { requireAdmin } from "@/lib/auth/requireAdmin";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET(req: Request) {
+  const check = await requireAdmin();
+  if (!check.ok) return check.response;
+
   const { searchParams } = new URL(req.url);
 
   const make = searchParams.get("make");

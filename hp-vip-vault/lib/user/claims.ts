@@ -17,8 +17,3 @@ export async function getFirstName(fallback = "User"): Promise<string> {
   const claims = await getAppSessionClaims();
   return claims?.FirstName || fallback;
 }
-
-export async function checkIsAdmin(): Promise<boolean> {
-  const claims = await getAppSessionClaims();
-  return claims?.Role === 'admin';
-}
