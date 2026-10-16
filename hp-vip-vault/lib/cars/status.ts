@@ -9,7 +9,7 @@ export function isMotValid(car: CarComplianceFields): boolean {
 }
 
 export function isTaxValid(car: CarComplianceFields): boolean {
-  return car.tax_status === "Taxed" || car.tax_status === "SORN";
+  return car.tax_status === "Taxed";
 }
 
 export function isServiceOverdue(car: CarComplianceFields): boolean {

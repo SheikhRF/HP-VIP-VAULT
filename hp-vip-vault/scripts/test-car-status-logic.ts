@@ -25,14 +25,14 @@ check("MOT 'No details held by DVLA' is valid", isMotValid({ mot: "No details he
 check("MOT expired is invalid", isMotValid({ mot: "Not valid", tax_status: null, service_date: null }) === false);
 
 check("Tax Taxed is valid", isTaxValid({ mot: null, tax_status: "Taxed", service_date: null }) === true);
-check("Tax SORN is valid", isTaxValid({ mot: null, tax_status: "SORN", service_date: null }) === true);
+check("Tax SORN is invalid", isTaxValid({ mot: null, tax_status: "SORN", service_date: null }) === false);
 check("Tax untaxed is invalid", isTaxValid({ mot: null, tax_status: "Untaxed", service_date: null }) === false);
 
 check("Future service date is not overdue", isServiceOverdue({ mot: null, tax_status: null, service_date: future }) === false);
 check("Past service date is overdue", isServiceOverdue({ mot: null, tax_status: null, service_date: past }) === true);
 check("Null service date is not overdue", isServiceOverdue({ mot: null, tax_status: null, service_date: null }) === false);
 
-const compliantCar = { mot: "Valid", tax_status: "SORN", service_date: future };
+const compliantCar = { mot: "Valid", tax_status: "Taxed", service_date: future };
 check("Fully compliant car does not need attention", needsAttention(compliantCar) === false);
 check("Fully compliant car is driveable", isDriveable(compliantCar) === true);
 
@@ -41,6 +41,9 @@ check("Car with overdue service needs attention", needsAttention(overdueServiceC
 
 const badTaxCar = { mot: "Valid", tax_status: "Untaxed", service_date: null };
 check("Car with invalid tax needs attention", needsAttention(badTaxCar) === true);
+
+const sornCar = { mot: "Valid", tax_status: "SORN", service_date: null };
+check("SORN car needs attention (not driveable)", needsAttention(sornCar) === true);
 
 if (failures > 0) {
   console.error(`\n${failures} case(s) failed.`);
