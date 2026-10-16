@@ -1,6 +1,7 @@
 import Navbar from "@/components/navbar";
 import { Shield, Activity, Users, Database, MapPin, Gauge, Lock } from "lucide-react";
 import Reveal from "@/components/Reveal";
+import SpeedBackdrop from "@/components/SpeedBackdrop";
 
 export default function AboutPage() {
   return (
@@ -10,6 +11,8 @@ export default function AboutPage() {
         <div className="max-w-7xl mx-auto space-y-24">
           
           {/* THE IDENTITY */}
+          <div className="relative overflow-hidden">
+          <SpeedBackdrop variant="corner" intensity="subtle" />
           <Reveal>
             <section className="max-w-4xl space-y-6">
               <h1 className="text-6xl md:text-8xl font-black italic uppercase tracking-tighter leading-none">
@@ -23,6 +26,7 @@ export default function AboutPage() {
               </p>
             </section>
           </Reveal>
+          </div>
 
           {/* DUAL PURPOSE GRID */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12">

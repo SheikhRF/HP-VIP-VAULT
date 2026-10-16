@@ -221,3 +221,79 @@ body {
   max-width: 420px;
   width: 100%;
 }
+
+/* ================================
+   6. Ambient motion (non-admin pages)
+   ================================ */
+
+@keyframes ambient-drift {
+  0%   { transform: translate(0, 0) scale(1); }
+  50%  { transform: translate(2%, -3%) scale(1.08); }
+  100% { transform: translate(0, 0) scale(1); }
+}
+.animate-ambient-drift { animation: ambient-drift 8s ease-in-out infinite; }
+
+@keyframes speed-streak {
+  0%   { transform: translateX(-60%) skewX(-15deg); opacity: 0; }
+  15%  { opacity: 0.35; }
+  85%  { opacity: 0.35; }
+  100% { transform: translateX(160%) skewX(-15deg); opacity: 0; }
+}
+.animate-speed-streak { animation: speed-streak 2.4s linear infinite; }
+
+@keyframes ghost-drift {
+  0%, 100% { transform: translateY(0) rotate(0deg); opacity: 0.05; }
+  50%      { transform: translateY(-6px) rotate(1deg); opacity: 0.08; }
+}
+.animate-ghost-drift { animation: ghost-drift 6s ease-in-out infinite; }
+
+/* Light-sweep ("paint catching light") hover effect */
+.hover-shine {
+  position: relative;
+  overflow: hidden;
+}
+.hover-shine::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(115deg, transparent 40%, rgba(255, 255, 255, 0.22) 50%, transparent 60%);
+  transform: translateX(-120%) skewX(-15deg);
+  transition: transform 650ms ease;
+  pointer-events: none;
+}
+.hover-shine:hover::after,
+.hover-shine:focus-visible::after {
+  transform: translateX(120%) skewX(-15deg);
+}
+
+/* Clerk's own button DOM, targeted directly so the auth CTAs get the same
+   light-sweep treatment as the rest of the app's buttons/cards. */
+.cl-formButtonPrimary {
+  position: relative;
+  overflow: hidden;
+}
+.cl-formButtonPrimary::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(115deg, transparent 40%, rgba(255, 255, 255, 0.3) 50%, transparent 60%);
+  transform: translateX(-120%) skewX(-15deg);
+  transition: transform 650ms ease;
+  pointer-events: none;
+}
+.cl-formButtonPrimary:hover::after {
+  transform: translateX(120%) skewX(-15deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-ambient-drift,
+  .animate-speed-streak,
+  .animate-ghost-drift {
+    animation: none;
+  }
+  .hover-shine::after,
+  .cl-formButtonPrimary::after {
+    transition: none;
+    display: none;
+  }
+}

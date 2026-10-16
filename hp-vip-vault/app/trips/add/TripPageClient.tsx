@@ -5,6 +5,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { CarFront, Calendar, Gauge, NotepadText, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import Reveal from "@/components/Reveal";
+import SpeedBackdrop from "@/components/SpeedBackdrop";
 
 function TripForm() {
   const router = useRouter();
@@ -72,9 +74,9 @@ function TripForm() {
   }
 
   return (
-    <div className="w-full max-w-2xl bg-[#1a1a1a] border border-gray-800 rounded-[2.5rem] p-8 md:p-12 shadow-2xl relative overflow-hidden">
+    <Reveal className="hover-shine w-full max-w-2xl bg-[#1a1a1a] border border-gray-800 rounded-[2.5rem] p-8 md:p-12 shadow-2xl relative overflow-hidden">
       {/* Background Decorative Element */}
-      <CarFront className="absolute -right-8 -top-8 text-white/5" size={200} />
+      <CarFront className="absolute -right-8 -top-8 text-white/5 animate-ghost-drift" size={200} />
 
       <header className="mb-10 relative z-10">
         <h1 className="text-4xl font-black italic tracking-tighter text-white uppercase leading-none">
@@ -184,12 +186,12 @@ function TripForm() {
           type="submit"
           variant="vault"
           disabled={submitting || isInvalid}
-          className="w-full rounded-2xl py-5 text-[11px] hover:scale-[1.02] active:scale-[0.98] disabled:opacity-30 shadow-[0_0_30px_rgba(249,115,22,0.3)] mt-4"
+          className="hover-shine w-full rounded-2xl py-5 text-[11px] hover:scale-[1.02] active:scale-[0.98] disabled:opacity-30 shadow-[0_0_30px_rgba(249,115,22,0.3)] mt-4"
         >
           {submitting ? "Transmitting..." : "Sync Trip to Vault"}
         </Button>
       </form>
-    </div>
+    </Reveal>
   );
 }
 
@@ -197,7 +199,8 @@ export default function TripPageClient() {
   const router = useRouter();
 
   return (
-    <main className="bg-background text-foreground px-6 pt-32 pb-12 flex flex-col items-center justify-center min-h-screen">
+    <main className="relative overflow-hidden bg-background text-foreground px-6 pt-32 pb-12 flex flex-col items-center justify-center min-h-screen">
+      <SpeedBackdrop variant="corner" />
       {/* Integrated Back Button */}
       <div className="mb-8 w-full max-w-2xl">
         <button
