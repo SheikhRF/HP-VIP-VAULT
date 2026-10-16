@@ -29,14 +29,14 @@ export default function PublicFleet({ initialCars }: { initialCars: Car[] }) {
       
       {/* SEARCH BAR SECTION  */}
       
-          <div className="relative">
-            <Search 
-              className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-orange-500 transition-colors" 
-              size={18} 
+          <div className="relative group">
+            <Search
+              className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-orange-500 transition-colors"
+              size={18}
             />
             <input
               type="text"
-              placeholder="INDENTIFY MAKE OR MODEL..."
+              placeholder="IDENTIFY MAKE OR MODEL..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full bg-[#060606] border border-white/5 text-white font-mono text-xs h-16 rounded-2xl pl-16 pr-12 outline-none transition-all placeholder:text-gray-800 uppercase tracking-widest focus:ring-1 focus:ring-orange-500/50 focus:shadow-[0_0_25px_rgba(249,115,22,0.1)]"
@@ -54,7 +54,9 @@ export default function PublicFleet({ initialCars }: { initialCars: Car[] }) {
       {/* DYNAMIC GRID - UPDATED CARD BORDERS */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
         {filteredCars.map((car) => (
-            <CarCard key={car.car_id} {...car} />
+            <div key={car.car_id} className="animate-in fade-in duration-300">
+              <CarCard {...car} />
+            </div>
         ))}
       </div>
 

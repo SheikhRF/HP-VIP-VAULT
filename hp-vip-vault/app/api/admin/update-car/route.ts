@@ -10,6 +10,8 @@ function getSupabase() {
   return createClient(url, key);
 }
 
+const BUCKET = process.env.SUPABASE_BUCKET_NAME || "car-images";
+
 export async function POST(req: Request) {
   const check = await requireAdmin();
   if (!check.ok) return check.response;
@@ -32,11 +34,11 @@ export async function POST(req: Request) {
 
         if (car?.pictures && Array.isArray(car.pictures)) {
           const pathsToDelete = car.pictures
-            .map((url: string) => url.split("car-images/")[1])
+            .map((url: string) => url.split(`${BUCKET}/`)[1])
             .filter(Boolean);
 
           if (pathsToDelete.length > 0) {
-            await supabase.storage.from("car-images").remove(pathsToDelete);
+            await supabase.storage.from(BUCKET).remove(pathsToDelete);
           }
         }
 
@@ -82,12 +84,12 @@ export async function POST(req: Request) {
       if (removedPhotos.length > 0) {
         // Convert URLs to relative storage paths
         const pathsToDelete = removedPhotos
-          .map((url: string) => url.split("car-images/")[1])
+          .map((url: string) => url.split(`${BUCKET}/`)[1])
           .filter(Boolean);
 
         if (pathsToDelete.length > 0) {
           const { error: storageError } = await supabase.storage
-            .from("car-images")
+            .from(BUCKET)
             .remove(pathsToDelete);
           
           if (storageError) console.error("Specific storage cleanup failed:", storageError);
@@ -96,18 +98,18 @@ export async function POST(req: Request) {
 
       // 3. Handle New Photo Uploads
       const newFiles = formData.getAll("photos") as File[];
-      let newPhotoUrls: string[] = [];
+      const newPhotoUrls: string[] = [];
 
       if (newFiles.length > 0) {
         for (const file of newFiles) {
           const fileName = `${carId}/${Date.now()}-${file.name.replace(/\s+/g, "_")}`;
           const { data } = await supabase.storage
-            .from("car-images")
+            .from(BUCKET)
             .upload(fileName, file);
 
           if (data) {
             const { data: { publicUrl } } = supabase.storage
-              .from("car-images")
+              .from(BUCKET)
               .getPublicUrl(data.path);
             newPhotoUrls.push(publicUrl);
           }

@@ -5,6 +5,7 @@ import { createClient } from "@supabase/supabase-js";
 import Navbar from "@/components/navbar";
 import PublicFleet from "@/components/PublicFleet";
 import { Button } from "@/components/ui/button";
+import Reveal from "@/components/Reveal";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -29,7 +30,7 @@ export default async function CarsPage() {
       <main className="min-h-screen bg-background text-white px-6 py-12 flex flex-col items-center">
         
         {/* Header Section - Borders and Subtext Updated */}
-        <div className="w-full max-w-7xl flex flex-col md:flex-row items-end justify-between mb-12 border-b border-white/5 pb-8 gap-6">
+        <Reveal as="div" className="w-full max-w-7xl flex flex-col md:flex-row items-end justify-between mb-12 border-b border-white/5 pb-8 gap-6">
           <div className="space-y-2">
             <h1 className="text-5xl md:text-7xl font-black italic tracking-tighter uppercase leading-none text-white">
               The <span className="text-orange-500">Collection</span>
@@ -53,7 +54,7 @@ export default async function CarsPage() {
               <span className="text-[10px] font-black uppercase tracking-widest text-gray-500">Admin Only</span>
             </div>
           )}
-        </div>
+        </Reveal>
 
         {/* Error Handling - Border Updated */}
         {error && (

@@ -154,7 +154,7 @@ export async function POST(req: Request) {
   const carId = inserted.car_id;
 
   // 4) STEP 2: Upload photos to the ID-based folder
-  const bucket = "car-images";
+  const bucket = process.env.SUPABASE_BUCKET_NAME || "car-images";
   const uploadedUrls: string[] = [];
 
   for (let i = 0; i < files.length; i++) {

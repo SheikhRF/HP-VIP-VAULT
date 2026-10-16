@@ -32,13 +32,16 @@ export async function GET(req: Request) {
   const carIds = Array.from(new Set(trips.map((t) => t.car_id)));
   const userIds = Array.from(new Set(trips.map((t) => t.user_id)));
 
+  type CarLookup = { car_id: number; make: string | null; model: string | null; registration: string | null };
+  type ProfileLookup = { id: string; name: string | null };
+
   const [{ data: cars }, { data: profiles }] = await Promise.all([
     carIds.length
       ? supabase.from("cars").select("car_id, make, model, registration").in("car_id", carIds)
-      : Promise.resolve({ data: [] as any[] }),
+      : Promise.resolve({ data: [] as CarLookup[] }),
     userIds.length
       ? supabase.from("profiles").select("id, name").in("id", userIds)
-      : Promise.resolve({ data: [] as any[] }),
+      : Promise.resolve({ data: [] as ProfileLookup[] }),
   ]);
 
   const formatted = trips.map((trip) => {

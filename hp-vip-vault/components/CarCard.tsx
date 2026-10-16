@@ -3,6 +3,7 @@ import { useState,} from "react";
 import { ChevronRight,} from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { VAULT_BLUR_PLACEHOLDER } from "@/lib/image";
 
 type Car = {
   car_id: number;
@@ -26,6 +27,8 @@ export default function CarCard(car : Car) {
                   alt={`${car.make ?? "Unknown make"} ${car.model ?? "Unknown model"}`}
                   fill
                   sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw"
+                  placeholder="blur"
+                  blurDataURL={VAULT_BLUR_PLACEHOLDER}
                   className="object-cover grayscale-[0.8] group-hover:grayscale-0 transition-all duration-1000 brightness-50 group-hover:brightness-100"
                 />
               ) : (

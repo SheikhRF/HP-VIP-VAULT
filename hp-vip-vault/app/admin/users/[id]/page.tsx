@@ -3,6 +3,7 @@ import Navbar from "@/components/navbar";
 import { Zap, Route, Car } from "lucide-react";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
+import RoleToggle from "@/components/admin/RoleToggle";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -56,11 +57,12 @@ export default async function UserDetailPage({ params }: { params: Promise<{ id:
           {/* HEADER */}
           <div className="space-y-4 border-b border-white/5 pb-12">
             <h1 className="text-6xl md:text-8xl font-black italic uppercase tracking-tighter leading-none">
-              {user.name.split(' ')[0]} <span className="text-orange-500">History</span>
+              {(user.name || "Unknown").split(' ')[0]} <span className="text-orange-500">History</span>
             </h1>
             <p className="text-[10px] text-gray-500 font-black uppercase tracking-[0.5em]">
               Driver File • {user.email}
             </p>
+            <RoleToggle userId={user.id} role={user.role} userName={user.name || user.email} />
           </div>
 
           {/* TOTALS GRID */}

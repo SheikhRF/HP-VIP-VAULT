@@ -1,9 +1,9 @@
 import Navbar from "@/components/navbar";
-import Image from "next/image";
 import Link from "next/link";
 import { createClient } from "@supabase/supabase-js";
 import { Plus, ChevronLeft, Gauge, Zap, Shield, Database, Activity } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import CarGallery from "@/components/CarGallery";
 
 export const dynamic = "force-dynamic";
 
@@ -97,21 +97,7 @@ export default async function CarDetailPage({
         </div>
 
         {/* Cinematic Gallery */}
-        <section className="w-full overflow-hidden py-4 border-y border-white/5 bg-black/20">
-            <div className="flex gap-4 overflow-x-auto px-6 no-scrollbar snap-x h-[300px] md:h-[450px] items-center justify-center">
-                {pictures.map((url, i) => (
-                    <div key={i} className="relative h-full w-[280px] md:w-[420px] shrink-0 snap-center rounded-[2rem] overflow-hidden border border-white/10 shadow-2xl bg-[#1a1a1a]">
-                        <Image
-                          src={url}
-                          alt={`${title} — photo ${i + 1} of ${pictures.length}`}
-                          fill
-                          sizes="(min-width: 768px) 420px, 280px"
-                          className="object-contain transition-all duration-700"
-                        />
-                    </div>
-                ))}
-            </div>
-        </section>
+        <CarGallery pictures={pictures} title={title} />
 
         {/* Technical Briefing Grid */}
         <div className="max-w-7xl mx-auto px-6 mt-12 grid grid-cols-1 lg:grid-cols-3 gap-8">

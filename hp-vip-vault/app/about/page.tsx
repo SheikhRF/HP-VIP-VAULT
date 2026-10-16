@@ -1,5 +1,6 @@
 import Navbar from "@/components/navbar";
 import { Shield, Activity, Users, Database, MapPin, Gauge, Lock } from "lucide-react";
+import Reveal from "@/components/Reveal";
 
 export default function AboutPage() {
   return (
@@ -9,25 +10,27 @@ export default function AboutPage() {
         <div className="max-w-7xl mx-auto space-y-24">
           
           {/* THE IDENTITY */}
-          <section className="max-w-4xl space-y-6">
-            <h1 className="text-6xl md:text-8xl font-black italic uppercase tracking-tighter leading-none">
-              About <span className="text-orange-500">The Vault</span>
-            </h1>
-            <p className="text-[10px] text-gray-400 font-black uppercase tracking-[0.6em] ml-1">
-              Digital Car Collection • HP.VIP
-            </p>
-            <p className="text-lg text-gray-400 max-w-2xl leading-relaxed font-bold mt-12">
-              The Vault is a digital home for our car collection. It is a private space where we track every vehicle's details, location, and service in real-time.
-            </p>
-          </section>
+          <Reveal>
+            <section className="max-w-4xl space-y-6">
+              <h1 className="text-6xl md:text-8xl font-black italic uppercase tracking-tighter leading-none">
+                About <span className="text-orange-500">The Vault</span>
+              </h1>
+              <p className="text-[10px] text-gray-400 font-black uppercase tracking-[0.6em] ml-1">
+                Digital Car Collection • HP.VIP
+              </p>
+              <p className="text-lg text-gray-400 max-w-2xl leading-relaxed font-bold mt-12">
+                The Vault is a digital home for our car collection. It is a private space where we track every vehicle's details, location, and service in real-time.
+              </p>
+            </section>
+          </Reveal>
 
           {/* DUAL PURPOSE GRID */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-            
+
             {/* FOR THE DRIVERS   */}
-            <div className="bg-white/[0.02] border border-white/5 p-10 rounded-[2.5rem] space-y-6 transition-all hover:border-white/10  ">
+            <Reveal className="group bg-white/[0.02] border border-white/5 p-10 rounded-[2.5rem] space-y-6 transition-all duration-500 hover:border-orange-500/30 hover:-translate-y-1">
               <div className="flex items-center gap-4 mb-4">
-                <Users className="text-orange-500" size={28} />
+                <Users className="text-orange-500 group-hover:drop-shadow-[0_0_8px_rgba(249,115,22,0.6)] transition-all" size={28} />
                 <h3 className="text-2xl font-black italic uppercase tracking-tighter text-white">For The <span className="text-orange-500">Drivers</span></h3>
               </div>
               <p className="text-[10px] text-gray-500 font-black uppercase tracking-[0.3em]">Circle Access</p>
@@ -36,12 +39,12 @@ export default function AboutPage() {
                 <li className="flex gap-3"><span className="text-orange-500">/</span> Browse high-quality photos and history for each asset.</li>
                 <li className="flex gap-3"><span className="text-orange-500">/</span> Check a car's stats and performance before you get behind the wheel.</li>
               </ul>
-            </div>
+            </Reveal>
 
             {/* FOR THE ADMINS */}
-            <div className="bg-white/[0.02] border border-white/5 p-10 rounded-[2.5rem] space-y-6 transition-all hover:border-white/10">
+            <Reveal delay={100} className="group bg-white/[0.02] border border-white/5 p-10 rounded-[2.5rem] space-y-6 transition-all duration-500 hover:border-orange-500/30 hover:-translate-y-1">
               <div className="flex items-center gap-4 mb-4">
-                <Shield className="text-orange-500" size={28} />
+                <Shield className="text-orange-500 group-hover:drop-shadow-[0_0_8px_rgba(249,115,22,0.6)] transition-all" size={28} />
                 <h3 className="text-2xl font-black italic uppercase tracking-tighter text-white">For The <span className="text-orange-500">Admins</span></h3>
               </div>
               <p className="text-[10px] text-gray-500 font-black uppercase tracking-[0.3em]">Management</p>
@@ -50,11 +53,11 @@ export default function AboutPage() {
                 <li className="flex gap-3"><span className="text-orange-500">/</span> Get alerts for Tax, MOT, and Service due dates.</li>
                 <li className="flex gap-3"><span className="text-orange-500">/</span> Easily add new cars to the collection with verified data.</li>
               </ul>
-            </div>
+            </Reveal>
           </div>
 
           {/* DATA SOURCE INFO */}
-          <div className="relative">
+          <Reveal className="relative">
             <div className="border border-white/5 bg-white/[0.01] rounded-[2.5rem] p-12 overflow-hidden">
               <div className="flex flex-col md:flex-row justify-between items-center gap-8">
                 <div className="space-y-4 text-center md:text-left">
@@ -75,7 +78,7 @@ export default function AboutPage() {
                 </div>
               </div>
             </div>
-          </div>
+          </Reveal>
 
           {/* FOOTER */}
           <footer className="pt-12 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-6">
