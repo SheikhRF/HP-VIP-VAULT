@@ -1,8 +1,23 @@
 "use client";
 
 import Link from "next/link";
-import Hyperspeed from "@/components/Hyperspeed";
+import dynamic from "next/dynamic";
 import { Unlock } from "lucide-react";
+
+// Defer the Three.js/postprocessing bundle so the CTA paints immediately
+// instead of waiting on the WebGL scene's parse/init cost.
+const Hyperspeed = dynamic(() => import("@/components/Hyperspeed"), {
+  ssr: false,
+  loading: () => (
+    <div
+      className="w-full h-full"
+      style={{
+        background:
+          "radial-gradient(circle at 50% 50%, rgba(249,115,22,0.12), transparent 60%), #000000",
+      }}
+    />
+  ),
+});
 
 export default function LandingPage() {
   return (

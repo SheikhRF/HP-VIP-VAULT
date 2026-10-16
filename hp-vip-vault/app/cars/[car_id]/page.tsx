@@ -40,18 +40,12 @@ export default async function CarDetailPage({
   const carId = Number(car_id);
   const supabase = getSupabase();
 
-  // 1. Fetch Car Data
-  const { data: car, error } = await supabase
-    .from("cars")
-    .select("*")
-    .eq("car_id", carId)
-    .single();
-
-  // 2. Fetch Trip Intelligence Data
-  const { data: trips } = await supabase
-    .from("trips")
-    .select("rating")
-    .eq("car_id", carId);
+  // Fetch car data and trip intelligence in parallel — trips only needs
+  // carId, not the car fetch's result, so there's no reason to serialize them.
+  const [{ data: car, error }, { data: trips }] = await Promise.all([
+    supabase.from("cars").select("*").eq("car_id", carId).single(),
+    supabase.from("trips").select("rating").eq("car_id", carId),
+  ]);
 
   if (error || !car) {
     return (

@@ -925,6 +925,8 @@ class App {
   clock: THREE.Clock;
   assets: Record<string, any>;
   disposed: boolean;
+  paused: boolean;
+  onVisibilityChange: () => void;
   road: Road;
   leftCarLights: CarLights;
   rightCarLights: CarLights;
@@ -975,6 +977,7 @@ class App {
     this.clock = new THREE.Clock();
     this.assets = {};
     this.disposed = false;
+    this.paused = false;
 
     this.road = new Road(this, options);
     this.leftCarLights = new CarLights(
@@ -1009,6 +1012,19 @@ class App {
     this.onContextMenu = this.onContextMenu.bind(this);
 
     window.addEventListener('resize', this.onWindowResize.bind(this));
+
+    // Pause the render loop while the tab is backgrounded, instead of
+    // burning GPU/battery indefinitely off-screen.
+    this.onVisibilityChange = () => {
+      if (document.hidden) {
+        this.paused = true;
+      } else if (this.paused) {
+        this.paused = false;
+        this.clock.getDelta(); // drop the paused-duration delta so motion doesn't jump
+        this.tick();
+      }
+    };
+    document.addEventListener('visibilitychange', this.onVisibilityChange);
   }
 
   onWindowResize() {
@@ -1174,6 +1190,7 @@ class App {
 
   dispose() {
     this.disposed = true;
+    document.removeEventListener('visibilitychange', this.onVisibilityChange);
 
     if (this.renderer) {
       this.renderer.dispose();
@@ -1203,7 +1220,7 @@ class App {
   }
 
   tick() {
-    if (this.disposed || !this) return;
+    if (this.disposed || !this || this.paused) return;
     if (resizeRendererToDisplaySize(this.renderer, this.setSize)) {
       const canvas = this.renderer.domElement;
       this.camera.aspect = canvas.clientWidth / canvas.clientHeight;
@@ -1224,7 +1241,15 @@ const Hyperspeed: FC<HyperspeedProps> = ({ effectOptions = {} }) => {
   const hyperspeed = useRef<HTMLDivElement>(null);
   const appRef = useRef<App | null>(null);
 
+  // Respect the user's motion preference: skip mounting the WebGL scene
+  // entirely rather than just pausing it, and fall back to a static gradient.
+  const prefersReducedMotion =
+    typeof window !== 'undefined' &&
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
   useEffect(() => {
+    if (prefersReducedMotion) return;
+
     if (appRef.current) {
       appRef.current.dispose();
       const container = document.getElementById('lights');
@@ -1252,7 +1277,19 @@ const Hyperspeed: FC<HyperspeedProps> = ({ effectOptions = {} }) => {
         appRef.current.dispose();
       }
     };
-  }, [mergedOptions]);
+  }, [mergedOptions, prefersReducedMotion]);
+
+  if (prefersReducedMotion) {
+    return (
+      <div
+        className="w-full h-full"
+        style={{
+          background:
+            'radial-gradient(circle at 50% 50%, rgba(249,115,22,0.12), transparent 60%), #000000',
+        }}
+      />
+    );
+  }
 
   return <div id="lights" className="w-full h-full" ref={hyperspeed}></div>;
 };
