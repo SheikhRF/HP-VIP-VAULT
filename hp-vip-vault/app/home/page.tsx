@@ -6,6 +6,7 @@ import Link from "next/link";
 import { ChevronRight, Zap } from "lucide-react";
 import CarCard from "@/components/CarCard";
 import Reveal from "@/components/Reveal";
+import SpeedBackdrop from "@/components/SpeedBackdrop";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -39,14 +40,17 @@ export default async function Home() {
       <main className="min-h-screen bg-background text-foreground flex flex-col items-center">
         
         {/* Hero Section: Sleek & Centered */}
-        <Reveal className="w-full max-w-7xl pt-32 pb-16 px-6 text-center">
-          <h1 className="text-6xl md:text-8xl font-black italic tracking-tighter uppercase leading-none mb-4">
-            Welcome to <span className="text-primary underline decoration-8 underline-offset-12">The Vault</span>
-          </h1>
-          <p className="text-muted-foreground text-sm uppercase tracking-[0.5em] font-bold">
-            {firstName || "Guest"}
-          </p>
-        </Reveal>
+        <div className="relative overflow-hidden w-full">
+          <SpeedBackdrop variant="center" />
+          <Reveal className="w-full max-w-7xl mx-auto pt-32 pb-16 px-6 text-center">
+            <h1 className="text-6xl md:text-8xl font-black italic tracking-tighter uppercase leading-none mb-4">
+              Welcome to <span className="text-primary underline decoration-8 underline-offset-12">The Vault</span>
+            </h1>
+            <p className="text-muted-foreground text-sm uppercase tracking-[0.5em] font-bold">
+              {firstName || "Guest"}
+            </p>
+          </Reveal>
+        </div>
 
         {/* Content Wrapper */}
         <div className="w-full max-w-7xl px-6 space-y-24 pb-24">

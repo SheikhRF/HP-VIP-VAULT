@@ -6,6 +6,8 @@ import Navbar from "@/components/navbar";
 import PublicFleet from "@/components/PublicFleet";
 import { Button } from "@/components/ui/button";
 import Reveal from "@/components/Reveal";
+import SpeedBackdrop from "@/components/SpeedBackdrop";
+import CountUp from "@/components/CountUp";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -37,7 +39,7 @@ export default async function CarsPage() {
             </h1>
             {/* Subtext updated to strict Vault style */}
             <p className="text-[9px] text-gray-600 font-black uppercase tracking-[0.5em] ml-1">
-              Active Vault Inventory
+              Active Vault Inventory — <CountUp value={cars.length} /> {cars.length === 1 ? "Car" : "Cars"}
             </p>
           </div>
 
@@ -70,8 +72,9 @@ export default async function CarsPage() {
 
         {/* Global Empty State - Border Updated */}
         {!error && (!cars || cars.length === 0) && (
-          <div className="text-center py-24 space-y-4">
-            <Gauge size={48} className="mx-auto text-gray-800 animate-pulse" />
+          <div className="relative overflow-hidden text-center py-24 space-y-4 w-full">
+            <SpeedBackdrop variant="center" intensity="subtle" />
+            <Gauge size={48} className="mx-auto text-gray-800 animate-ghost-drift" />
             <p className="text-gray-600 font-black uppercase tracking-[0.3em] text-[10px]">No records found in current vault.</p>
           </div>
         )}

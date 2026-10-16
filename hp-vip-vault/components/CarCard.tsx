@@ -17,7 +17,7 @@ export default function CarCard(car : Car) {
         <Link
             key={car.car_id}
             href={`/cars/${car.car_id}`}
-            className="group relative block w-full aspect-[4/5] bg-black border border-white/5 rounded-[2.5rem] overflow-hidden transition-all duration-700 hover:border-orange-500/50 hover:scale-[1.02] hover:shadow-[0_0_50px_rgba(0,0,0,1)]"
+            className="hover-shine group relative block w-full aspect-[4/5] bg-black border border-white/5 rounded-[2.5rem] overflow-hidden transition-all duration-700 hover:border-orange-500/50 hover:scale-[1.02] hover:shadow-[0_0_50px_rgba(0,0,0,1)]"
           >
             {/* Image Layer with Grayscale Protocol */}
             <div className="absolute inset-0 z-0">
