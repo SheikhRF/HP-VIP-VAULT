@@ -1,22 +1,26 @@
 import { SignIn } from "@clerk/nextjs";
+import Navbar from "@/components/navbar";
 
 export default function Page() {
   return (
-    <div className="ui-overlay">
-      <SignIn 
-      appearance={{
-          elements: {
-            formButtonPrimary:{
+    <>
+      <Navbar />
+      <div className="ui-overlay min-h-screen">
+        <SignIn
+          appearance={{
+            elements: {
+              formButtonPrimary: {
                 backgroundColor: "var(--color-primary)",
-                color: "#ffffffff",
+                color: "#ffffff",
                 borderRadius: "var(--radius-md)",
+              },
+              formFieldInput: {
+                borderRadius: "var(--radius-md)",
+              },
             },
-            formFieldInput: {
-              borderRadius: "var(--radius-md)",
-            },
-          },
-        }}
-      />
-    </div>
+          }}
+        />
+      </div>
+    </>
   );
 }

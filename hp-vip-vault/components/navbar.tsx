@@ -1,11 +1,5 @@
 import { auth } from "@clerk/nextjs/server";
 import Link from "next/link";
-import {
-    NavigationMenu,
-    NavigationMenuList,
-    NavigationMenuItem,
-    NavigationMenuLink,
-} from "./ui/navigation-menu";
 
 export default async function Navbar() {
     const { sessionClaims } = await auth();

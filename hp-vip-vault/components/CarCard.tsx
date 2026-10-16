@@ -1,6 +1,7 @@
 "use client";
 import { useState,} from "react";
 import { ChevronRight,} from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 
 type Car = {
@@ -20,10 +21,12 @@ export default function CarCard(car : Car) {
             {/* Image Layer with Grayscale Protocol */}
             <div className="absolute inset-0 z-0">
               {car.pictures?.[0] ? (
-                <img
+                <Image
                   src={car.pictures[0]}
-                  alt={`${car.make} ${car.model}`}
-                  className="w-full h-full object-cover grayscale-[0.8] group-hover:grayscale-0 transition-all duration-1000 brightness-50 group-hover:brightness-100"
+                  alt={`${car.make ?? "Unknown make"} ${car.model ?? "Unknown model"}`}
+                  fill
+                  sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw"
+                  className="object-cover grayscale-[0.8] group-hover:grayscale-0 transition-all duration-1000 brightness-50 group-hover:brightness-100"
                 />
               ) : (
                 <div className="w-full h-full bg-[#060606] flex items-center justify-center">

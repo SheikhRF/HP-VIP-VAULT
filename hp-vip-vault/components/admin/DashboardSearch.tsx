@@ -3,20 +3,13 @@
 import { useState, useMemo } from "react";
 import { Search, X, CheckCircle2, AlertTriangle, Car } from "lucide-react";
 import AssetIntelligenceCard from "@/components/admin/AssetIntelligenceCard";
+import { isDriveable, needsAttention } from "@/lib/cars/status";
 
 type FilterType = "all" | "driveable" | "attention";
 
 export default function DashboardSearch({ cars }: { cars: any[] }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState<FilterType>("all");
-
-  const isDriveable = (car: any) => {
-    const validMot = car.mot === "Valid" || car.mot === "No details held by DVLA";
-    const validTax = car.tax_status === "Taxed";
-    return validMot && validTax;
-  };
-
-  const needsAttention = (car: any) => !isDriveable(car);
 
   const filteredCars = useMemo(() => {
     let result = cars;

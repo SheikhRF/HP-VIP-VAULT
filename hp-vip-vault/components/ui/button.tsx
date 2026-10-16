@@ -19,6 +19,12 @@ const buttonVariants = cva(
         ghost:
           "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
         link: "text-primary underline-offset-4 hover:underline",
+        // "Vault" is this app's primary CTA look: black-on-orange, full pill,
+        // heavy tracked uppercase type, glow shadow, press/hover scale.
+        vault:
+          "bg-orange-500 text-black rounded-full font-black uppercase tracking-[0.3em] shadow-[0_0_30px_rgba(249,115,22,0.3)] hover:scale-105 active:scale-95 hover:bg-orange-500",
+        "vault-ghost":
+          "bg-[#1a1a1a] text-gray-500 rounded-full font-black uppercase tracking-[0.2em] border border-gray-800 hover:text-white hover:border-orange-500",
       },
       size: {
         default: "h-9 px-4 py-2 has-[>svg]:px-3",

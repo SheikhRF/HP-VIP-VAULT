@@ -3,11 +3,12 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
-import { 
-  Save, Trash2, Loader2, Wind, Scaling, Coins, MapPin, Settings2, ShieldAlert, Camera, X, Plus, 
+import { ErrorBanner } from "@/components/ui/error-banner";
+import {
+  Save, Trash2, Loader2, Wind, Scaling, Coins, MapPin, Settings2, ShieldAlert, Camera, X, Plus,
   Calendar
 } from "lucide-react";
-import imageCompression from 'browser-image-compression'; 
+import imageCompression from 'browser-image-compression';
 
 export default function EditAssetForm({ initialData }: { initialData: any }) {
   const [formData, setFormData] = useState(initialData);
@@ -16,6 +17,7 @@ export default function EditAssetForm({ initialData }: { initialData: any }) {
   const [loading, setLoading] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isCompressing, setIsCompressing] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const router = useRouter();
 
   const handleDecommission = async () => {
@@ -25,6 +27,7 @@ export default function EditAssetForm({ initialData }: { initialData: any }) {
 
     if (!confirmDelete) return;
 
+    setErrorMsg(null);
     setIsDeleting(true);
     try {
       const response = await fetch("/api/admin/update-car", {
@@ -44,7 +47,7 @@ export default function EditAssetForm({ initialData }: { initialData: any }) {
         throw new Error(result.error);
       }
     } catch (err: any) {
-      alert(`Decommissioning Failed: ${err.message}`);
+      setErrorMsg(`Decommissioning Failed: ${err.message}`);
     } finally {
       setIsDeleting(false);
     }
@@ -52,8 +55,9 @@ export default function EditAssetForm({ initialData }: { initialData: any }) {
 
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrorMsg(null);
     setLoading(true);
-    
+
     try {
       const fd = new FormData();
       
@@ -91,7 +95,7 @@ export default function EditAssetForm({ initialData }: { initialData: any }) {
         throw new Error(result.error);
       }
     } catch (err: any) {
-      alert(err.message || "System link failure.");
+      setErrorMsg(err.message || "System link failure.");
     } finally {
       setLoading(false);
       setIsCompressing(false);
@@ -124,7 +128,9 @@ export default function EditAssetForm({ initialData }: { initialData: any }) {
 
   return (
     <form onSubmit={handleUpdate} className="space-y-12 pb-20">
-      
+
+      <ErrorBanner message={errorMsg} />
+
       {/* IDENTITY SECTION */}
       <div className="space-y-6">
         <h3 className="text-[10px] font-black uppercase text-orange-500 tracking-[0.4em] flex items-center gap-2">

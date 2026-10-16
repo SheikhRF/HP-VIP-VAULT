@@ -1,15 +1,19 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import { Calendar, CheckCircle2, Loader2, X, ChevronDown, ChevronUp, AlertTriangle, CalendarArrowUp } from "lucide-react";
 import Link from "next/link";
+import { ErrorBanner } from "@/components/ui/error-banner";
 
 export default function ServiceReminder({ cars }: { cars: any[] }) {
+  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedCar, setSelectedCar] = useState<{ id: number; reg: string } | null>(null);
   const [nextDate, setNextDate] = useState("");
   const [isUpdating, setIsUpdating] = useState(false);
+  const [serviceError, setServiceError] = useState<string | null>(null);
 
   // --- TELEMETRY & CRITICAL CHECK ---
   const { reminders, hasCritical } = useMemo(() => {
@@ -37,11 +41,13 @@ export default function ServiceReminder({ cars }: { cars: any[] }) {
   const openServiceModal = (carId: number, registration: string) => {
     setSelectedCar({ id: carId, reg: registration });
     setNextDate(new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().split('T')[0]);
+    setServiceError(null);
     setIsModalOpen(true);
   };
 
   const handleCommitService = async () => {
     if (!selectedCar || !nextDate) return;
+    setServiceError(null);
     setIsUpdating(true);
     try {
       const fd = new FormData();
@@ -49,12 +55,12 @@ export default function ServiceReminder({ cars }: { cars: any[] }) {
       fd.append("service_date", nextDate);
       const res = await fetch("/api/admin/update-car", { method: "POST", body: fd });
       if (!res.ok) throw new Error("Link Failure");
-      window.location.reload();
-    } catch (err) {
-      alert("System Error: Update failed.");
-    } finally {
       setIsUpdating(false);
       setIsModalOpen(false);
+      router.refresh();
+    } catch (err) {
+      setServiceError("System Error: Update failed.");
+      setIsUpdating(false);
     }
   };
 
@@ -125,6 +131,7 @@ export default function ServiceReminder({ cars }: { cars: any[] }) {
                 <label className="text-[8px] font-black uppercase text-gray-500 ml-1 group-focus-within:text-orange-500">Next Service Due Date</label>
                 <input type="date" value={nextDate} onChange={(e) => setNextDate(e.target.value)} className="w-full bg-[#1a1a1a] border border-white/5 text-white font-mono text-xs h-12 rounded-2xl px-4 outline-none focus:ring-1 focus:ring-orange-500/50" />
               </div>
+              <ErrorBanner message={serviceError} />
               <button onClick={handleCommitService} disabled={isUpdating} className="w-full bg-orange-500 text-black py-4 rounded-full font-black uppercase text-[11px] tracking-[0.3em] hover:scale-[1.02] flex items-center justify-center gap-2 disabled:opacity-50">
                 {isUpdating ? <Loader2 className="animate-spin" size={16} /> : <CheckCircle2 size={16} />}
                 {isUpdating ? "Committing..." : "Induct New Date"}

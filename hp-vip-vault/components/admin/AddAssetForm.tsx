@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
+import { ErrorBanner } from "@/components/ui/error-banner";
 import { 
   Plus, Loader2, Wind, Scaling, MapPin, Search, Database, Camera, X, ChevronLeft, PoundSterling, Gauge, ShieldAlert, CheckCircle2, Calendar 
 } from "lucide-react";
@@ -75,6 +76,7 @@ export default function AddAssetForm() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    setErrorMsg("");
     setSubmitting(true);
     try {
       const compressionOptions = { maxSizeMB: 0.8, maxWidthOrHeight: 1920, useWebWorker: true };
@@ -115,6 +117,8 @@ export default function AddAssetForm() {
           <ChevronLeft size={14} /> Cancel Session
         </button>
       </div>
+
+      <ErrorBanner message={errorMsg} />
 
       {/* 01. TECHNICAL IDENTITY */}
       <div className="space-y-6">

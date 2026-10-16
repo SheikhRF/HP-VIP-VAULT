@@ -8,6 +8,7 @@ import { SyncFleetButton } from "@/components/admin/SyncFleetButton";
 import Link from "next/link";
 import ServiceReminder from "@/components/admin/ServiceReminder";
 import DashboardSearch from "@/components/admin/DashboardSearch";
+import { needsAttention } from "@/lib/cars/status";
 
 export const dynamic = "force-dynamic";
 
@@ -18,11 +19,7 @@ export default async function AdminDashboard() {
   );
 
   const { data: cars } = await supabase.from("cars").select("*");
-  const alerts = cars?.filter(c =>
-    c.mot !== "Valid" && c.mot !== "No details held by DVLA" ||
-    c.tax_status !== "Taxed" && c.tax_status !== "SORN" ||
-    c.service_date !== null && new Date(c.service_date) < new Date()
-  ).length || 0;
+  const alerts = cars?.filter(needsAttention).length || 0;
 
   const lastSyncTimestamp = cars?.reduce((oldest, car) => {
     if (!car.last_synced_at) return oldest;

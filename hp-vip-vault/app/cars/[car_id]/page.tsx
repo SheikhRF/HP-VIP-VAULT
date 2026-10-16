@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { createClient } from "@supabase/supabase-js";
 import { Plus, ChevronLeft, Gauge, Zap, Shield, Database, Activity } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export const dynamic = "force-dynamic";
 
@@ -93,24 +94,25 @@ export default async function CarDetailPage({
             </div>
           </div>
 
-          <Link
-            href={`/trips/add?car_id=${carId}`}
-            className="bg-primary text-black px-8 py-4 rounded-full font-black uppercase tracking-tighter flex items-center justify-center gap-3 hover:scale-105 active:scale-95 transition-all shadow-[0_0_30px_rgba(249,115,22,0.4)]"
-          >
-            <Plus size={20} strokeWidth={3} />
-            Add Trip
-          </Link>
+          <Button asChild variant="vault" className="px-8 py-4 gap-3 tracking-tighter shadow-[0_0_30px_rgba(249,115,22,0.4)]">
+            <Link href={`/trips/add?car_id=${carId}`}>
+              <Plus size={20} strokeWidth={3} />
+              Add Trip
+            </Link>
+          </Button>
         </div>
 
         {/* Cinematic Gallery */}
         <section className="w-full overflow-hidden py-4 border-y border-white/5 bg-black/20">
             <div className="flex gap-4 overflow-x-auto px-6 no-scrollbar snap-x h-[300px] md:h-[450px] items-center justify-center">
                 {pictures.map((url, i) => (
-                    <div key={i} className="relative h-full shrink-0 snap-center rounded-[2rem] overflow-hidden border border-white/10 shadow-2xl bg-[#1a1a1a]">
-                        <img 
-                          src={url} 
-                          alt={`${title} ${i}`} 
-                          className="h-full w-auto object-contain transition-all duration-700" 
+                    <div key={i} className="relative h-full w-[280px] md:w-[420px] shrink-0 snap-center rounded-[2rem] overflow-hidden border border-white/10 shadow-2xl bg-[#1a1a1a]">
+                        <Image
+                          src={url}
+                          alt={`${title} — photo ${i + 1} of ${pictures.length}`}
+                          fill
+                          sizes="(min-width: 768px) 420px, 280px"
+                          className="object-contain transition-all duration-700"
                         />
                     </div>
                 ))}

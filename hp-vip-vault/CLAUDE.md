@@ -16,6 +16,7 @@ npm run lint      # eslint .
 There is no test suite/framework configured in this project (no test script in `package.json`). The two exceptions are framework-free regression scripts (plain assertions, no deps, same `npx tsx scripts/<name>.ts` pattern):
 - `npx tsx scripts/test-admin-claims.ts` — admin role-claim casing logic in `lib/auth/requireAdmin.ts`. Run after touching that file or any admin-check code.
 - `npx tsx scripts/test-dvla-sync-logic.ts` — retry/backoff and concurrency-limiter logic in `lib/dvla/syncFleet.ts` / `lib/dvla/concurrencyLimiter.ts`. Run after touching DVLA sync code.
+- `npx tsx scripts/test-car-status-logic.ts` — the shared "needs attention / driveable" logic in `lib/cars/status.ts`. Run after touching car compliance/status code.
 
 One-off migration script (not part of the app build): `npx tsx scripts/sync-clerk-users.ts` — backfills Clerk users into the Supabase `profiles` table. Requires `CLERK_SECRET_KEY`, `NEXT_PUBLIC_SUPABASE_URL`, `SUPABASE_SECRET_KEY` in `.env.local`.
 
@@ -41,6 +42,13 @@ One-off migration script (not part of the app build): `npx tsx scripts/sync-cler
 **Env var inconsistency to be aware of:** the service-role key is read under two different names across the codebase — `SUPABASE_SECRET_KEY` (most files) and `SUPABASE_SERVICE_ROLE_KEY` (`app/admin/trips/[id]/page.tsx`, `app/admin/users/page.tsx`). Both are currently set in `.env.local`, but keep this in mind if env vars are ever rotated or restructured. `SUPABASE_BUCKET_NAME` is defined in `.env.local` but never read; the bucket name `"car-images"` is hardcoded everywhere it's needed instead.
 
 **Registration number handling:** car registrations are always normalized with `.toUpperCase().replace(/\s+/g, "")` before being sent to DVLA or stored — follow this convention in any new code that touches registrations.
+
+**Car compliance/status logic:** "does this car need attention" (MOT not valid, tax not Taxed/SORN, or service overdue) is centralized in `lib/cars/status.ts` (`needsAttention`/`isDriveable`/`isMotValid`/`isTaxValid`/`isServiceOverdue`). This used to be reimplemented separately (and inconsistently) in the dashboard, `AssetIntelligenceCard`, and `DashboardSearch` — always import from `lib/cars/status.ts` instead of reimplementing this check, or the three call sites will drift again.
+
+**Shared UI primitives in `components/ui/`:**
+- `Button` (`components/ui/button.tsx`) has a `vault` variant (black-on-orange filled pill, heavy tracked uppercase, glow shadow, hover/active scale) and a `vault-ghost` variant (dark bordered pill) matching this app's actual CTA look — use these instead of hand-rolling `bg-orange-500 text-black rounded-full font-black uppercase ...` inline on every new button. Not every button fits this mold (e.g. the landing page's bespoke glass CTA, or a back-button with a separate icon chip) — don't force a primitive where the design is genuinely one-off.
+- `Input` works for `<input>` elements with a `className` override for height/radius/focus-ring (no `Textarea`/`Select` primitive exists yet — those stay as native elements).
+- `ErrorBanner` (`components/ui/error-banner.tsx`) is the standard way to surface an async-action failure to the user (`<ErrorBanner message={errorMsg} />`, renders nothing when `message` is falsy) — use it instead of `alert()` or a silently-swallowed error.
 
 **External APIs** (server-side only):
 - DVLA Vehicle Enquiry Service (`DVLA_VES_KEY`) — MOT/tax/year lookups by registration. No batch endpoint exists (one registration per call) and DVLA rate-limits per second (`429`). Fleet-wide syncing goes through `lib/dvla/syncFleet.ts`, which fetches with bounded concurrency (`lib/dvla/concurrencyLimiter.ts`, configurable via `DVLA_SYNC_CONCURRENCY`, default `4`) and retries only `429`/`502` with exponential backoff (`lib/dvla/syncFleet.ts#fetchDvlaWithRetry`) — one car's failure never aborts the rest of the fleet. This single function is called by both the manual trigger (`app/api/admin/sync-dvla/route.ts`, admin-only via `requireAdmin()`) and the weekly scheduled trigger (`app/api/cron/sync-dvla/route.ts`, `CRON_SECRET`-gated, invoked by the `vercel.json` cron entry) — don't reimplement the DVLA-calling loop in either route; extend `syncFleet`/`syncOneCar` instead.

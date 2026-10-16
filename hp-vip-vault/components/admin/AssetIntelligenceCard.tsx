@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Gauge, Zap, ChevronRight, AlertTriangle, ShieldCheck, Activity, Banknote, Coins, CreditCard, Calendar} from "lucide-react";
+import { needsAttention } from "@/lib/cars/status";
 
 export default function AssetIntelligenceCard({ car }: { car: any }) {
   const divRef = useRef<HTMLDivElement>(null);
@@ -28,9 +29,7 @@ export default function AssetIntelligenceCard({ car }: { car: any }) {
 };
 
 
-  const isCritical = (car.mot !== "Valid" && car.mot !== "No details held by DVLA") || 
-                    (car.tax_status !== "Taxed" && car.tax_status !== "SORN") || 
-                    (car.service_date !== null && new Date(car.service_date) < new Date());
+  const isCritical = needsAttention(car);
 
   return (
     <Card 
@@ -92,7 +91,7 @@ export default function AssetIntelligenceCard({ car }: { car: any }) {
         <div className="space-y-2 border-t border-white/5 pt-4">
           <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-widest">
             <span className="text-gray-500 flex items-center gap-1"><Activity size={10}/> MOT Status</span>
-            <span className={car.mot === "Valid" ? "text-green-500" : car.mot === "No details held by DVLA" ? "text-white-500" :"text-red-500 font-black"}>
+            <span className={car.mot === "Valid" ? "text-green-500" : car.mot === "No details held by DVLA" ? "text-gray-300" :"text-red-500 font-black"}>
               {car.mot || "UNKNOWN"}
             </span>
           </div>
@@ -107,7 +106,7 @@ export default function AssetIntelligenceCard({ car }: { car: any }) {
 
           <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-widest">
             <span className="text-gray-500 flex items-center gap-1"><Calendar size={10}/> Service Date</span>
-            <span className={car.service_date && new Date(car.service_date) > new Date() ? "text-green-500" : car.service_date === null ? "text-white-500" : "text-orange-500 font-black"}>
+            <span className={car.service_date && new Date(car.service_date) > new Date() ? "text-green-500" : car.service_date === null ? "text-gray-300" : "text-orange-500 font-black"}>
               {car.service_date ? new Date(car.service_date).toLocaleDateString() : "UNKNOWN"}
             </span>
           </div>

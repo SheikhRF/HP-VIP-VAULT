@@ -4,6 +4,7 @@ import Link from "next/link";
 import { createClient } from "@supabase/supabase-js";
 import Navbar from "@/components/navbar";
 import PublicFleet from "@/components/PublicFleet";
+import { Button } from "@/components/ui/button";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -40,13 +41,12 @@ export default async function CarsPage() {
           </div>
 
           {isAdmin ? (
-            <Link
-              href="/cars/add"
-              className="group bg-orange-500 text-black rounded-full px-8 py-4 font-black uppercase tracking-tighter flex items-center gap-3 hover:scale-105 active:scale-95 transition-all shadow-[0_0_20px_rgba(249,115,22,0.4)]"
-            >
-              <PlusCircle size={20} strokeWidth={3} />
-              Add New Car
-            </Link>
+            <Button asChild variant="vault" className="group gap-3 px-8 py-4 tracking-tighter shadow-[0_0_20px_rgba(249,115,22,0.4)]">
+              <Link href="/cars/add">
+                <PlusCircle size={20} strokeWidth={3} />
+                Add New Car
+              </Link>
+            </Button>
           ) : (
             <div className="flex items-center gap-3 bg-[#1a1a1a] border border-white/5 px-6 py-4 rounded-full opacity-50">
               <ShieldAlert size={18} className="text-gray-600" />

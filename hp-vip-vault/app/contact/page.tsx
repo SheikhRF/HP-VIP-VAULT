@@ -1,6 +1,8 @@
 import Navbar from "@/components/navbar";
-import { Send, Mail, MapPin, Globe, ShieldCheck } from "lucide-react";
+import { Send, Mail } from "lucide-react";
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 // This is a Server Action
 async function handleContactAction(formData: FormData) {
@@ -28,7 +30,7 @@ export default async function ContactPage() {
               <h1 className="text-6xl font-black italic tracking-tighter uppercase leading-tight">
                 Get in <br /><span className="text-orange-500">Touch</span>
               </h1>
-              <p className="text-gray-500 text-xs tracking-[0.2em] uppercase font-bold max-w-md leading-relaxed">
+              <p className="text-gray-400 text-xs tracking-[0.2em] uppercase font-bold max-w-md leading-relaxed">
                 Log your inquiry into the vault.
               </p>
             </header>
@@ -39,7 +41,7 @@ export default async function ContactPage() {
               ].map((item, i) => (
                 <div key={i} className="bg-[#1a1a1a] border border-gray-800 p-6 rounded-[2rem] group hover:border-orange-500/50 transition-all">
                   <item.icon className="text-orange-500 mb-4" size={24} />
-                  <p className="text-[8px] text-gray-500 uppercase font-black tracking-widest mb-1">{item.label}</p>
+                  <p className="text-[8px] text-gray-400 uppercase font-black tracking-widest mb-1">{item.label}</p>
                   <p className="text-sm font-bold uppercase tracking-tight">{item.value}</p>
                 </div>
               ))}
@@ -57,45 +59,46 @@ export default async function ContactPage() {
             >
               <div className="space-y-4">
                 <div className="space-y-1">
-                  <label className="text-[9px] text-gray-500 uppercase font-black tracking-widest ml-1">Name</label>
-                  <input 
+                  <label className="text-[9px] text-gray-400 uppercase font-black tracking-widest ml-1">Name</label>
+                  <Input
                     name="name"
-                    type="text" 
+                    type="text"
                     required
                     placeholder="IDENTIFY YOURSELF"
-                    className="w-full bg-black border border-gray-800 rounded-2xl px-6 py-4 text-xs font-bold tracking-widest uppercase outline-none focus:border-orange-500 transition-all placeholder:text-gray-900"
+                    className="bg-black border-gray-800 rounded-2xl px-6 py-4 h-auto text-xs font-bold tracking-widest uppercase focus-visible:border-orange-500 focus-visible:ring-0 placeholder:text-gray-600"
                   />
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-[9px] text-gray-500 uppercase font-black tracking-widest ml-1">Email</label>
-                  <input 
+                  <label className="text-[9px] text-gray-400 uppercase font-black tracking-widest ml-1">Email</label>
+                  <Input
                     name="email"
-                    type="email" 
+                    type="email"
                     required
                     placeholder="EMAIL@VAULT.COM"
-                    className="w-full bg-black border border-gray-800 rounded-2xl px-6 py-4 text-xs font-bold tracking-widest uppercase outline-none focus:border-orange-500 transition-all placeholder:text-gray-900"
+                    className="bg-black border-gray-800 rounded-2xl px-6 py-4 h-auto text-xs font-bold tracking-widest uppercase focus-visible:border-orange-500 focus-visible:ring-0 placeholder:text-gray-600"
                   />
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-[9px] text-gray-500 uppercase font-black tracking-widest ml-1">Inquiry</label>
-                  <textarea 
+                  <label className="text-[9px] text-gray-400 uppercase font-black tracking-widest ml-1">Inquiry</label>
+                  <textarea
                     name="message"
                     rows={4}
                     required
                     placeholder="ENTER YOUR MESSAGE..."
-                    className="w-full bg-black border border-gray-800 rounded-2xl px-6 py-4 text-xs font-bold tracking-widest uppercase outline-none focus:border-orange-500 transition-all resize-none placeholder:text-gray-900"
+                    className="w-full bg-black border border-gray-800 rounded-2xl px-6 py-4 text-xs font-bold tracking-widest uppercase outline-none focus:border-orange-500 transition-all resize-none placeholder:text-gray-600"
                   />
                 </div>
               </div>
 
-              <button 
+              <Button
                 type="submit"
-                className="w-full bg-orange-500 text-black py-5 rounded-2xl flex items-center justify-center gap-3 font-black uppercase text-[11px] tracking-[0.3em] hover:bg-white transition-all shadow-[0_0_40px_rgba(249,115,22,0.2)]"
+                variant="vault"
+                className="w-full py-5 rounded-2xl gap-3 text-[11px] hover:bg-white hover:scale-100 shadow-[0_0_40px_rgba(249,115,22,0.2)]"
               >
                 <Send size={16} /> Send
-              </button>
+              </Button>
             </form>
           </div>
 
