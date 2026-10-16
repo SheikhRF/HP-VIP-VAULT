@@ -1,14 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { createClient } from "@supabase/supabase-js";
 import { ArrowUpRight } from "lucide-react";
 import Link from "next/link"; // Added for navigation
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
 
 export default function TripList({ initialTrips }: { initialTrips: any[] }) {
   const [trips, setTrips] = useState(initialTrips);
@@ -17,35 +11,21 @@ export default function TripList({ initialTrips }: { initialTrips: any[] }) {
 
   const loadMore = async () => {
     setLoading(true);
-    
-    const { data: rawData } = await supabase
-      .from("trips")
-      .select("*")
-      .order("start_date", { ascending: false })
-      .range(trips.length, trips.length + 9);
 
-    if (rawData && rawData.length > 0) {
-      const [cars, profiles] = await Promise.all([
-        supabase.from("cars").select("car_id, make, model, registration"),
-        supabase.from("profiles").select("id, name")
-      ]);
+    try {
+      const res = await fetch(`/api/admin/trips?offset=${trips.length}&limit=10`);
+      const data = await res.json();
 
-      const formatted = rawData.map(trip => {
-        const car = cars.data?.find(c => c.car_id === trip.car_id);
-        const user = profiles.data?.find(p => p.id === trip.user_id);
-        return {
-          ...trip,
-          car_name: car ? `${car.make} ${car.model}` : "Asset Deleted",
-          car_plate: car?.registration || "N/A",
-          user_name: user?.name || "Unknown Driver"
-        };
-      });
-
-      setTrips(prev => [...prev, ...formatted]);
-      if (rawData.length < 10) setHasMore(false);
-    } else {
+      if (res.ok && data.trips?.length > 0) {
+        setTrips((prev) => [...prev, ...data.trips]);
+        if (data.trips.length < 10) setHasMore(false);
+      } else {
+        setHasMore(false);
+      }
+    } catch {
       setHasMore(false);
     }
+
     setLoading(false);
   };
 
@@ -55,18 +35,18 @@ export default function TripList({ initialTrips }: { initialTrips: any[] }) {
         <table className="w-full text-left border-collapse">
           <tbody className="divide-y divide-white/5">
             {trips.map((trip) => (
-              <tr 
-                key={trip.trip_id} 
+              <tr
+                key={trip.trip_id}
                 className="group relative hover:bg-white/[0.01] transition-all cursor-pointer"
               >
-                {/* THE HITBOX LINK: 
-                   This covers the entire <tr>. pointer-events-none is used on the 
+                {/* THE HITBOX LINK:
+                   This covers the entire <tr>. pointer-events-none is used on the
                    cells below so they don't block the click to this link.
                 */}
                 <td className="p-0">
-                  <Link 
-                    href={`/admin/trips/${trip.trip_id}`} 
-                    className="absolute inset-0 z-0" 
+                  <Link
+                    href={`/admin/trips/${trip.trip_id}`}
+                    className="absolute inset-0 z-0"
                   />
                 </td>
 
@@ -102,7 +82,7 @@ export default function TripList({ initialTrips }: { initialTrips: any[] }) {
       </div>
 
       {hasMore && (
-        <button 
+        <button
           onClick={loadMore}
           disabled={loading}
           className="w-full py-8 bg-white/[0.01] border border-dashed border-white/5 rounded-[2rem] text-[10px] font-black uppercase tracking-[0.4em] text-gray-600 hover:text-white hover:border-orange-500/50 transition-all flex items-center justify-center gap-3 active:scale-[0.98]"

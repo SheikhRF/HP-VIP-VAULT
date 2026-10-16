@@ -25,6 +25,9 @@ export default clerkMiddleware(async (auth, req) => {
   // 2. Check Admin Routes
   if (isAdminRoute(req)) {
     const { sessionClaims } = await auth();
+    // sessionClaims.role is a Supabase-managed claim fixed to "authenticated"
+    // by Clerk's Supabase integration (never "admin"); sessionClaims.Role is
+    // this app's real role. See lib/auth/requireAdmin.ts for the full note.
     if (sessionClaims?.role !== 'admin' && sessionClaims?.Role !== 'admin') {
       const url = new URL('/home', req.url);
       return Response.redirect(url);
