@@ -1,5 +1,26 @@
 # History
 
+## ✅ Done: fixed broken `/cars` card layout + live browser verification pass
+
+User caught this live in production before I did: `/cars` had collapsed into raw overlapping text with no images, borders, or spacing.
+
+**Root cause:** `CarCard.tsx`'s root element is a `<Link>`, which is `inline` by default. It only got its `aspect-[4/5]` block sizing because it used to be a *direct child of the CSS Grid* in `PublicFleet.tsx`, and Grid auto-blockifies its direct children. The Phase 2 motion work (`animate-in fade-in duration-300` wrapper) wrapped each `CarCard` in an extra `<div>` so it was no longer a direct grid child — Grid blockified the new wrapper `div` instead, and the `Link` fell back to inline, collapsing the whole card.
+
+**Fix:** added explicit `block w-full` to the `Link`'s className in `CarCard.tsx` (commit `c4c8cd5`). This makes `CarCard` robust regardless of future nesting, instead of special-casing the wrapper.
+
+**Lesson (also added to `CLAUDE.md`):** any component that depends on being a direct CSS Grid/Flex child for implicit sizing is fragile — adding a wrapper div anywhere above it for animation/layout purposes can silently break it. Prefer explicit `block`/`flex`/sizing classes on grid-item components rather than relying on auto-blockification.
+
+**Live verification pass** (`hp-vip-vault.vercel.app`, browser-driven, read-only except one real contact-form submission):
+- `/cars` — broken pre-fix, confirmed fixed post-deploy ✅
+- `/home` — unaffected by the bug (no wrapper there), confirmed fine ✅
+- `/cars/[id]` — gallery + lightbox (Phase 3) confirmed working ✅
+- `/about` — Reveal-animated cards confirmed working ✅
+- `/contact` — submitted a real test message, got the success banner, form cleared ✅
+- `/admin/users` — search confirmed working (filtered "vlad" → 1 result) ✅
+- `/admin/users/[id]` — `RoleToggle` confirmed rendering correctly; **not clicked** (would mutate a real user's production admin access, not requested)
+
+This closes most of the "Verification gaps" item below, except the two items noted as still open (see that section).
+
 ## ✅ Done: SORN vehicles no longer count as "driveable" / tax-valid
 
 `lib/cars/status.ts#isTaxValid` now only accepts `"Taxed"` (SORN removed). `scripts/test-car-status-logic.ts` updated to match and lock in the corrected behavior. No call sites needed changes since the logic was already centralized.
@@ -54,4 +75,8 @@ Goal: make the non-admin pages feel more dynamic and fast, CSS-only (no new moti
 
 ## Verification gaps (things fixed but never confirmed end-to-end)
 - **Manual auth-fix verification never run.** The broken-access-control fixes on the admin API routes were unit-tested at the logic level, but nobody has hit them as a real non-admin authenticated account to confirm they 403 in practice — needs real Clerk test accounts I don't have credentials for.
-- **Nothing in this entire session has been visually confirmed in an actual browser** — all of Phase 1-3 of the motion roadmap, the admin error-banner wiring, the new `/api/admin/trips` pagination fix, the role-management UI, and the contact form's new success/error states all type-check and build cleanly but haven't been click-tested. This is the single biggest remaining gap — worth doing before considering any of this "done" in practice, not just in theory.
+- **Role toggle mutation itself never exercised.** `RoleToggle`'s UI was confirmed rendering correctly on a real user (Vlad Apostol), but actually clicking "Grant/Revoke Admin Access" against production data was deliberately not done (not requested, and it's a real, consequential mutation on a live user's account) — so the `app/api/admin/users/[id]/role/route.ts` write path itself is still only logic-verified, not click-tested.
+- **`/admin/dashboard`** — confirmed live: fleet status renders (20 assets, 16 alerts), `DashboardSearch` correctly filtered "mclaren" → 3 matching assets (including the fuzzy "Mercedes-Benz SLR McLaren" match) ✅
+- **`/admin/trips`** — confirmed live: `/api/admin/trips` route returns real trip records (asset, driver, distance, date) correctly — this directly confirms the RLS-blocked-query bug fix actually works in production, not just in logic. Only 7 trips exist total so true multi-page pagination (>10 rows) wasn't exercised, but the core fix (the route returning data at all) is verified. ✅
+- **Landing page `/`** — Hyperspeed WebGL scene renders correctly with the "UNLOCK VAULT" CTA, zero console errors on load (confirms the `next/dynamic` lazy-load and reduced-motion/visibility-check additions didn't break anything) ✅
+- **Still not browser-checked:** `loading.tsx` skeletons actually appearing during navigation (hard to catch manually on a fast Vercel edge deploy — would need network throttling), the sign-up page's Clerk theming, and actually toggling `prefers-reduced-motion`/backgrounding the tab to watch Hyperspeed's rAF loop pause (code-reviewed and logically correct, not instrumented-and-watched live).
