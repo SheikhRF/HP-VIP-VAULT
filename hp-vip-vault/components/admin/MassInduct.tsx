@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { Upload, FileText, CheckCircle2, XCircle, Trash2 } from "lucide-react";
+import { Upload, FileText, CheckCircle2, XCircle, Trash2, Sparkles } from "lucide-react";
 import Link from "next/link";
+import { ErrorBanner } from "@/components/ui/error-banner";
 
 type ParsedCar = {
   make: string;
@@ -15,11 +16,16 @@ type ParsedCar = {
 type ResultRow = ParsedCar & { status: "success" | "error"; message?: string };
 
 export default function MassInductClient() {
+  const [mode, setMode] = useState<"csv" | "freeform">("freeform");
   const [parsedCars, setParsedCars] = useState<ParsedCar[]>([]);
   const [results, setResults] = useState<ResultRow[] | null>(null);
   const [loading, setLoading] = useState(false);
   const [fileName, setFileName] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const [freeformText, setFreeformText] = useState("");
+  const [parsing, setParsing] = useState(false);
+  const [parseError, setParseError] = useState<string | null>(null);
 
   const parseCSV = (text: string): ParsedCar[] => {
     const lines = text.trim().split("\n").filter(Boolean);
@@ -56,6 +62,46 @@ export default function MassInductClient() {
     if (file && file.name.endsWith(".csv")) handleFile(file);
   };
 
+  const handleFreeformParse = async () => {
+    if (!freeformText.trim()) return;
+    setParsing(true);
+    setParseError(null);
+
+    try {
+      const res = await fetch("/api/admin/mass-induct/parse", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: freeformText }),
+      });
+      const data = await res.json();
+
+      if (!data.ok) {
+        setParseError(data.error || "AI parsing failed");
+        return;
+      }
+
+      const cars: ParsedCar[] = (data.cars as { make: string; model: string; registration: string }[]).map((c) => ({
+        make: c.make,
+        model: c.model,
+        registration: c.registration,
+        valid: Boolean(c.make && c.model),
+        error: c.make && c.model ? undefined : "Missing make or model",
+      }));
+
+      if (cars.length === 0) {
+        setParseError("No cars were found in that text — try adding more detail.");
+        return;
+      }
+
+      setFileName(null);
+      setParsedCars(cars);
+    } catch {
+      setParseError("Couldn't reach the AI parsing service");
+    } finally {
+      setParsing(false);
+    }
+  };
+
   const handleInduct = async () => {
     const validCars = parsedCars.filter(c => c.valid);
     if (validCars.length === 0) return;
@@ -81,6 +127,8 @@ export default function MassInductClient() {
     setParsedCars([]);
     setResults(null);
     setFileName(null);
+    setFreeformText("");
+    setParseError(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
@@ -90,41 +138,96 @@ export default function MassInductClient() {
   return (
     <div className="space-y-10">
 
-      {/* FORMAT GUIDE */}
-      <div className="bg-white/[0.02] border border-white/5 rounded-[2rem] p-6 space-y-3">
-        <p className="text-[9px] font-black uppercase tracking-widest text-orange-500">CSV Format Required</p>
-        <code className="block text-xs font-mono text-gray-400 bg-black/40 px-4 py-3 rounded-xl">
-          make,model,registration<br />
-          Ferrari,F40,AB12CDE<br />
-          Lamborghini,Huracan,XY21ZZZ
-        </code>
-        <p className="text-[9px] text-gray-600 font-black uppercase tracking-widest">
-          Header row is optional. Specs and images can be added later per asset.
-        </p>
-      </div>
-
-      {/* DROP ZONE */}
+      {/* MODE TOGGLE */}
       {parsedCars.length === 0 && (
-        <div
-          onDrop={handleDrop}
-          onDragOver={(e) => e.preventDefault()}
-          onClick={() => fileInputRef.current?.click()}
-          className="border-2 border-dashed border-white/10 rounded-[2.5rem] py-24 flex flex-col items-center justify-center gap-4 cursor-pointer hover:border-orange-500/40 hover:bg-white/[0.01] transition-all group"
-        >
-          <Upload size={32} className="text-gray-700 group-hover:text-orange-500 transition-colors" />
-          <div className="text-center space-y-1">
-            <p className="text-[10px] font-black uppercase tracking-widest text-gray-500 group-hover:text-white transition-colors">
-              Drop CSV file here or click to browse
+        <div className="flex items-center gap-3 bg-white/[0.02] border border-white/5 rounded-full p-1.5 w-fit">
+          <button
+            onClick={() => setMode("freeform")}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-[9px] font-black uppercase tracking-widest transition-colors ${
+              mode === "freeform" ? "bg-orange-500 text-black" : "text-gray-500 hover:text-white"
+            }`}
+          >
+            <Sparkles size={12} /> Paste a List
+          </button>
+          <button
+            onClick={() => setMode("csv")}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-[9px] font-black uppercase tracking-widest transition-colors ${
+              mode === "csv" ? "bg-orange-500 text-black" : "text-gray-500 hover:text-white"
+            }`}
+          >
+            <FileText size={12} /> Upload CSV
+          </button>
+        </div>
+      )}
+
+      {mode === "freeform" && parsedCars.length === 0 && (
+        <div className="space-y-6">
+          <div className="bg-white/[0.02] border border-white/5 rounded-[2rem] p-6 space-y-3">
+            <p className="text-[9px] font-black uppercase tracking-widest text-orange-500 flex items-center gap-2">
+              <Sparkles size={12} /> AI-Parsed Induction
             </p>
-            <p className="text-[8px] font-black uppercase tracking-widest text-gray-700">.csv files only</p>
+            <p className="text-[9px] text-gray-600 font-black uppercase tracking-widest">
+              Paste any description of the cars to add — a casual list, notes, even a messy paragraph. Registrations
+              are optional and can be added per asset afterward.
+            </p>
           </div>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept=".csv"
-            className="hidden"
-            onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])}
+
+          <textarea
+            value={freeformText}
+            onChange={(e) => setFreeformText(e.target.value)}
+            placeholder={`e.g. "Got a blue Ferrari F8 Tributo in, plate AB21CDE. Also picking up a black McLaren 720S and a Lamborghini Huracan STO, no plates yet."`}
+            rows={8}
+            className="w-full bg-white/[0.02] border border-white/10 rounded-[2rem] p-6 text-sm text-white placeholder:text-gray-700 outline-none focus:border-orange-500/40 transition-colors resize-none"
           />
+
+          <ErrorBanner message={parseError} />
+
+          <button
+            onClick={handleFreeformParse}
+            disabled={parsing || !freeformText.trim()}
+            className="w-full py-6 bg-orange-500 text-black font-black uppercase tracking-widest text-sm rounded-[2rem] hover:scale-[1.01] active:scale-[0.99] transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_0_30px_rgba(249,115,22,0.3)] flex items-center justify-center gap-3"
+          >
+            <Sparkles size={16} />
+            {parsing ? "Parsing with AI..." : "Parse with AI"}
+          </button>
+        </div>
+      )}
+
+      {mode === "csv" && parsedCars.length === 0 && (
+        <div className="space-y-6">
+          <div className="bg-white/[0.02] border border-white/5 rounded-[2rem] p-6 space-y-3">
+            <p className="text-[9px] font-black uppercase tracking-widest text-orange-500">CSV Format Required</p>
+            <code className="block text-xs font-mono text-gray-400 bg-black/40 px-4 py-3 rounded-xl">
+              make,model,registration<br />
+              Ferrari,F40,AB12CDE<br />
+              Lamborghini,Huracan,XY21ZZZ
+            </code>
+            <p className="text-[9px] text-gray-600 font-black uppercase tracking-widest">
+              Header row is optional. Specs and images can be added later per asset.
+            </p>
+          </div>
+
+          <div
+            onDrop={handleDrop}
+            onDragOver={(e) => e.preventDefault()}
+            onClick={() => fileInputRef.current?.click()}
+            className="border-2 border-dashed border-white/10 rounded-[2.5rem] py-24 flex flex-col items-center justify-center gap-4 cursor-pointer hover:border-orange-500/40 hover:bg-white/[0.01] transition-all group"
+          >
+            <Upload size={32} className="text-gray-700 group-hover:text-orange-500 transition-colors" />
+            <div className="text-center space-y-1">
+              <p className="text-[10px] font-black uppercase tracking-widest text-gray-500 group-hover:text-white transition-colors">
+                Drop CSV file here or click to browse
+              </p>
+              <p className="text-[8px] font-black uppercase tracking-widest text-gray-700">.csv files only</p>
+            </div>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".csv"
+              className="hidden"
+              onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])}
+            />
+          </div>
         </div>
       )}
 
@@ -133,8 +236,14 @@ export default function MassInductClient() {
         <div className="space-y-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <FileText size={16} className="text-orange-500" />
-              <span className="text-[9px] font-black uppercase tracking-widest text-gray-400">{fileName}</span>
+              {fileName ? (
+                <FileText size={16} className="text-orange-500" />
+              ) : (
+                <Sparkles size={16} className="text-orange-500" />
+              )}
+              <span className="text-[9px] font-black uppercase tracking-widest text-gray-400">
+                {fileName ?? "AI-Parsed List"}
+              </span>
               <span className="text-[9px] font-black uppercase tracking-widest text-green-500">{validCount} valid</span>
               {invalidCount > 0 && (
                 <span className="text-[9px] font-black uppercase tracking-widest text-red-500">{invalidCount} invalid</span>
