@@ -1,13 +1,25 @@
 # History
 
-## ✅ Done: fixed every problem found in the full-site audit
+## ✅ Done: found and fixed the real `/cars/[car_id]` crash — a function prop crossing the RSC boundary
 
-- **`/cars/[car_id]` crash resilience.** `app/cars/[car_id]/page.tsx`'s `Promise.all` fetch is now wrapped so a rejected promise (the suspected cause of the intermittent crash — a transient Supabase network hiccup) is caught and retried once before falling back to the existing "Asset Not Found" state, instead of crashing the whole Server Component render uncaught. **Caveat carried over honestly:** the exact root cause was never confirmed from Vercel's server logs (no dashboard access in-session), so this is the correctness fix implied by the strongest available evidence, not a verified-against-the-actual-exception fix — worth watching in production to confirm the crash stops recurring.
-- **Error boundaries added app-wide.** New `app/error.tsx` (route-level, on-brand "Uplink Interrupted" screen with a Try Again button calling `reset()` and a Return to Vault link — note it can't render the real `Navbar` since that's an async Server Component and `error.tsx` is forced client-side, so it has its own minimal static header matching the same look) and `app/global-error.tsx` (root-layout-level fallback, renders its own `<html>/<body>` since it replaces the layout entirely). Any future uncaught render error anywhere in the app now gets a styled, branded, retry-capable screen instead of the generic one seen during the audit.
+The first fix (below, commit `d614459`) addressed the *suspected* cause from the audit (a possible unhandled Promise rejection) and added error boundaries, but after deploying it I re-tested live rather than assuming it worked — and the crash was not only still happening, it was now reproducing on **every single car, every single time** (previously intermittent), each with its own stable digest. That ruled out "transient network hiccup" definitively and pointed at something deterministic in the render itself.
+
+**Real root cause:** `app/cars/[car_id]/page.tsx` passed an inline arrow function as a prop to `CountUp` — `<CountUp value={...} format={(n) => formatPrice(Math.round(n))} />` — where `CountUp` is a `"use client"` component. React Server Components cannot serialize a function across the server→client boundary, so this threw during render on *every* request, 100% deterministically. This existed since the original Phase 3 motion-roadmap work, well before this session. It explains the audit's confusing "sometimes works via raw fetch" observation too: those "successful" raw fetches were almost certainly serving stale cached HTML from before this code path was hit, not a live render.
+
+**Fix:** `components/CountUp.tsx` now takes a `format: "number" | "currency"` string prop and resolves it internally via a small lookup table, instead of accepting a function — only `value` (a plain number) crosses the server→client boundary now. The page's local `formatPrice` helper was removed since `CountUp`'s built-in `"currency"` formatter replaces it. Commit `f760aa0`.
+
+**Verified live after deploy:** clicked into cars 45, 41, 40, and 39 (all previously crashing or untested) via real in-app navigation — all load cleanly, valuation `CountUp` animates correctly with the `£` formatting intact.
+
+**Lesson for `CLAUDE.md`:** never pass a function (or any non-serializable value — class instances, Symbols, etc.) as a prop from a Server Component to a Client Component, even inline/"just for formatting." Next.js's production error message for this ("error occurred in the Server Components render") gives zero indication of the actual cause — only a digest — so this class of bug is easy to misdiagnose as a data/network issue instead. If a client component needs custom formatting, give it a small set of named string variants it resolves internally, not a callback.
+
+## ✅ Done: fixed the first round of problems found in the full-site audit
+
+- **`/cars/[car_id]` crash — partial fix, superseded above.** `app/cars/[car_id]/page.tsx`'s `Promise.all` fetch was wrapped so a rejected promise would be caught and retried once before falling back gracefully, addressing the audit's leading theory (a transient Supabase network hiccup). This turned out not to be the actual cause (see entry above) but is a harmless, real correctness improvement kept in place regardless. Commit `d614459`.
+- **Error boundaries added app-wide.** New `app/error.tsx` (route-level, on-brand "Uplink Interrupted" screen with a Try Again button calling `reset()` and a Return to Vault link — note it can't render the real `Navbar` since that's an async Server Component and `error.tsx` is forced client-side, so it has its own minimal static header matching the same look) and `app/global-error.tsx` (root-layout-level fallback, renders its own `<html>/<body>` since it replaces the layout entirely). This is what actually caught the real crash above and turned it from a bare browser error page into a proper on-brand screen — genuinely valuable independent of root-causing the crash itself.
 - **Instagram handle typo fixed.** `app/home/page.tsx`: "@horespower.vip" → "@horsepower.vip".
 - **`/trips/add` without `?car_id=` now shows a proper "No Asset Selected" state** (`app/trips/add/TripPageClient.tsx`) with a link back to `/cars`, instead of rendering a full trip-logging form stamped "CAR ID: #UNKN" that could never actually submit.
 - **`/admin/cars/[id]`'s "Asset Not Found" state restyled** to match the public `/cars/[car_id]` equivalent — now has the navbar, consistent typography, and a "Return to Fleet" link instead of a bare unstyled string.
-- Verified: `npx tsc --noEmit` clean, full `npm run build` succeeds (all 32 routes compile).
+- Verified: `npx tsc --noEmit` clean, full `npm run build` succeeds (all 32 routes compile) for both rounds of fixes.
 
 ## 🔍 Done: full-site functional audit (every route, browser-driven)
 
@@ -87,8 +99,7 @@ Goal: make the non-admin pages feel more dynamic and fast, CSS-only (no new moti
 
 # Known problems backlog (what's left)
 
-## Needs production monitoring (fixed, but the real root cause is unconfirmed)
-- **`/cars/[car_id]` intermittent crash — fix applied, not yet re-verified live.** See the "fixed every problem found in the full-site audit" entry above for what changed (`try/catch` + retry around the page's `Promise.all`, plus new `error.tsx`/`global-error.tsx` boundaries app-wide). The exact server-side exception was never confirmed from Vercel's logs (no dashboard access in-session), so this addresses the strongest suspect rather than a proven cause. **Worth a Claude in Chrome pass against the Vercel dashboard's function logs** to find the real digest/stack trace and confirm the fix actually addresses it, and worth re-running the same click-through-multiple-cars repro from this audit after the next deploy to see if it still reproduces.
+Nothing outstanding from the full-site audit — `/cars/[car_id]`'s crash is fixed and confirmed live (re-tested across 4 previously-crashing cars post-deploy, all load cleanly), and all four smaller gaps from the audit are fixed. See "found and fixed the real `/cars/[car_id]` crash" in History above for the full story.
 
 ## Infra-only — needs manual action in a dashboard, can't be fixed by changing code
 - **Set `CRON_SECRET` and `DVLA_SYNC_CONCURRENCY` in Vercel's Production environment variables.** Neither is set today. The weekly DVLA sync cron will 401 on every run until this is done.
