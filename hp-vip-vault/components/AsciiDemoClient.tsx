@@ -2,21 +2,18 @@
 
 import { useEffect, useState } from "react";
 import { X } from "lucide-react";
-import ParticleField, { ParticleVariant } from "@/components/ParticleField";
+import AsciiField, { AsciiVariant } from "@/components/AsciiField";
 import { Button } from "@/components/ui/button";
 
-const VARIANTS: { id: ParticleVariant; name: string; blurb: string }[] = [
-  { id: "ghost-fleet", name: "Ghost Fleet", blurb: "Reworked: fewer, larger, bolder silhouettes with an orange roofline accent so they actually read as cars" },
-  { id: "night-drive", name: "Night Drive", blurb: "Headlight / taillight streaks, like distant traffic passing" },
-  { id: "telemetry-grid", name: "Telemetry Grid", blurb: "Diagnostic node network with traveling data pulses" },
-  { id: "rolling-road", name: "Rolling Road", blurb: "New: dashes warp outward from a vanishing point, like a road rushing under the car" },
-  { id: "speed-lines", name: "Speed Lines", blurb: "New: flickering motion lines radiating from a corner, comic-style rush of speed" },
-  { id: "checkered-drift", name: "Checkered Drift", blurb: "New: tiny checkered-flag squares drifting — a racing motif without literal car shapes" },
-  { id: "tire-tracks", name: "Tire Tracks", blurb: "New: curved skid marks that draw in, hold, then fade — like a car just drifted through" },
+const VARIANTS: { id: AsciiVariant; name: string; blurb: string }[] = [
+  { id: "matrix-rain", name: "Matrix Rain", blurb: "Falling character columns, tinted orange, bright racing/telemetry glyphs mixed into the stream" },
+  { id: "telemetry-feed", name: "Telemetry Feed", blurb: "A HUD-style readout of fake live car data (speed, RPM, tire temps, VIN) scrolling in a corner" },
+  { id: "ascii-car", name: "ASCII Car", blurb: "A car drawn entirely out of text characters, drifting slowly across the screen" },
+  { id: "ascii-hyperspeed", name: "ASCII Hyperspeed", blurb: "The landing page's light-streak motion, re-rendered as characters warping from a vanishing point" },
 ];
 
 function PreviewCard({ variant, name, blurb, opacity, onFullscreen }: {
-  variant: ParticleVariant;
+  variant: AsciiVariant;
   name: string;
   blurb: string;
   opacity: number;
@@ -24,7 +21,7 @@ function PreviewCard({ variant, name, blurb, opacity, onFullscreen }: {
 }) {
   return (
     <div className="relative overflow-hidden rounded-[2rem] border border-gray-800 bg-black h-[420px] flex flex-col">
-      <ParticleField variant={variant} opacity={opacity} className="z-0" />
+      <AsciiField variant={variant} opacity={opacity} className="z-0" />
       <div className="relative z-10 flex flex-col h-full p-8">
         <div className="space-y-1">
           <h3 className="text-2xl font-black italic uppercase tracking-tighter text-white">{name}</h3>
@@ -46,9 +43,9 @@ function PreviewCard({ variant, name, blurb, opacity, onFullscreen }: {
   );
 }
 
-export default function ParticleDemoClient() {
+export default function AsciiDemoClient() {
   const [opacity, setOpacity] = useState(1);
-  const [fullscreen, setFullscreen] = useState<ParticleVariant | null>(null);
+  const [fullscreen, setFullscreen] = useState<AsciiVariant | null>(null);
 
   const activeVariant = VARIANTS.find((v) => v.id === fullscreen);
 
@@ -66,7 +63,7 @@ export default function ParticleDemoClient() {
       <div className="max-w-7xl mx-auto space-y-10">
         <header className="space-y-2">
           <h1 className="text-5xl md:text-6xl font-black italic uppercase tracking-tighter leading-none">
-            Particle <span className="text-orange-500">Field</span>
+            ASCII <span className="text-orange-500">Field</span>
           </h1>
           <p className="text-[10px] text-gray-500 font-black uppercase tracking-[0.3em]">
             Internal design review — not linked from navigation
@@ -106,7 +103,7 @@ export default function ParticleDemoClient() {
 
       {fullscreen && activeVariant && (
         <div className="fixed inset-0 z-[100] bg-black" onClick={() => setFullscreen(null)}>
-          <ParticleField variant={fullscreen} opacity={opacity} />
+          <AsciiField variant={fullscreen} opacity={opacity} />
           {/* decorative only — pointer-events-none so it never sits on top of the close button */}
           <div className="relative z-10 h-full flex flex-col items-center justify-center text-center px-6 space-y-4 pointer-events-none">
             <p className="text-[10px] text-orange-500 font-black uppercase tracking-[0.3em]">{activeVariant.name}</p>
