@@ -2,11 +2,34 @@
 
 import { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { CarFront, Calendar, Gauge, NotepadText, X } from "lucide-react";
+import Link from "next/link";
+import { CarFront, Calendar, Gauge, NotepadText, X, ShieldAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Reveal from "@/components/Reveal";
 import SpeedBackdrop from "@/components/SpeedBackdrop";
+
+function NoCarSelected() {
+  return (
+    <Reveal className="hover-shine w-full max-w-2xl bg-[#1a1a1a] border border-gray-800 rounded-[2.5rem] p-8 md:p-12 shadow-2xl relative overflow-hidden text-center space-y-6">
+      <ShieldAlert size={40} className="mx-auto text-orange-500" />
+      <div className="space-y-2">
+        <h1 className="text-3xl font-black italic tracking-tighter text-white uppercase leading-none">
+          No Asset <span className="text-orange-500">Selected</span>
+        </h1>
+        <p className="text-[10px] text-gray-500 font-black uppercase tracking-[0.3em]">
+          Open a car from the collection and use its &ldquo;Add Trip&rdquo; button to log a trip.
+        </p>
+      </div>
+      <Link
+        href="/cars"
+        className="inline-block text-xs font-bold uppercase tracking-[0.3em] text-white underline underline-offset-8"
+      >
+        Return to Collection
+      </Link>
+    </Reveal>
+  );
+}
 
 function TripForm() {
   const router = useRouter();
@@ -26,6 +49,10 @@ function TripForm() {
 
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
+
+  if (!carId) {
+    return <NoCarSelected />;
+  }
 
   const isInvalid = !carId || !formData.startDate || !formData.mileageBefore;
 
@@ -83,7 +110,7 @@ function TripForm() {
           Trip <span className="text-orange-500">Logger</span>
         </h1>
         <p className="text-[10px] text-gray-500 font-black uppercase tracking-[0.4em] mt-2 leading-none">
-          Car ID: <span className="text-orange-500 font-mono">#{carId || "UNKN"}</span>
+          Car ID: <span className="text-orange-500 font-mono">#{carId}</span>
         </p>
       </header>
 

@@ -1,5 +1,28 @@
 # History
 
+## ✅ Done: fixed every problem found in the full-site audit
+
+- **`/cars/[car_id]` crash resilience.** `app/cars/[car_id]/page.tsx`'s `Promise.all` fetch is now wrapped so a rejected promise (the suspected cause of the intermittent crash — a transient Supabase network hiccup) is caught and retried once before falling back to the existing "Asset Not Found" state, instead of crashing the whole Server Component render uncaught. **Caveat carried over honestly:** the exact root cause was never confirmed from Vercel's server logs (no dashboard access in-session), so this is the correctness fix implied by the strongest available evidence, not a verified-against-the-actual-exception fix — worth watching in production to confirm the crash stops recurring.
+- **Error boundaries added app-wide.** New `app/error.tsx` (route-level, on-brand "Uplink Interrupted" screen with a Try Again button calling `reset()` and a Return to Vault link — note it can't render the real `Navbar` since that's an async Server Component and `error.tsx` is forced client-side, so it has its own minimal static header matching the same look) and `app/global-error.tsx` (root-layout-level fallback, renders its own `<html>/<body>` since it replaces the layout entirely). Any future uncaught render error anywhere in the app now gets a styled, branded, retry-capable screen instead of the generic one seen during the audit.
+- **Instagram handle typo fixed.** `app/home/page.tsx`: "@horespower.vip" → "@horsepower.vip".
+- **`/trips/add` without `?car_id=` now shows a proper "No Asset Selected" state** (`app/trips/add/TripPageClient.tsx`) with a link back to `/cars`, instead of rendering a full trip-logging form stamped "CAR ID: #UNKN" that could never actually submit.
+- **`/admin/cars/[id]`'s "Asset Not Found" state restyled** to match the public `/cars/[car_id]` equivalent — now has the navbar, consistent typography, and a "Return to Fleet" link instead of a bare unstyled string.
+- Verified: `npx tsc --noEmit` clean, full `npm run build` succeeds (all 32 routes compile).
+
+## 🔍 Done: full-site functional audit (every route, browser-driven)
+
+Went through every route in `app/` live on production, clicking through real flows rather than just loading pages statically. Full list checked: `/`, `/home`, `/cars` (+ search), `/cars/add` (+ DVLA trim-search API), `/cars/[car_id]` (multiple ids), `/about`, `/trips/add`, `/admin`, `/admin/induct-selection`, `/admin/mass-induct`, `/admin/cars/[id]` (valid and invalid ids), `/admin/dashboard` (+ search), `/admin/users` (+ search), `/admin/trips`, `/sign-in` (already-authenticated redirect). Nothing was submitted/mutated (no cars added, no CSV uploaded, no role toggled, no asset decommissioned) — all forms were visually/structurally verified without triggering writes.
+
+**Found one real, high-priority bug — see "Known problems backlog" below for the full write-up: `/cars/[car_id]` intermittently crashes.** Clicking from `/cars` into a car's detail page (client-side navigation) sometimes throws an uncaught Server-Components render error and falls through to a generic, unstyled "This page couldn't load" screen, with a server-assigned error digest. Reproduced on multiple different cars with different digests; the same URL sometimes loads fine on direct/raw fetch. Root cause not fully pinned down — needs Vercel function logs to see the actual server-side exception (only the digest is visible client-side in production builds).
+
+**Also found while auditing:**
+- **Zero `error.tsx`/`global-error.tsx` boundaries exist anywhere in `app/`.** This is why the crash above (and any other future uncaught render error) falls through to Next's bare default UI instead of something on-brand with a retry path. Worth adding regardless of the `/cars/[car_id]` root cause.
+- **Minor typo:** the Instagram handle on `/home` reads "@HORESPOWER.VIP" (letters transposed).
+- **Minor UX gap:** `/trips/add` visited without a `?car_id=` query param (i.e. not via the "Add Trip" button) shows "CAR ID: #UNKN" instead of redirecting or prompting for a car — low real-world impact since nothing in the app links there without the param, but a stray bookmark or typed URL hits a confusing dead end.
+- **Minor inconsistency:** `/admin/cars/[id]` for a non-existent id shows a bare, unstyled "ASSET NOT FOUND" with no navbar or way back — compare to the public `/cars/[car_id]` equivalent, which has proper styling and a "Return to Vault" link.
+
+**Confirmed working well:** `/cars` search/filter, `/cars/add`'s multi-step induction form including the live external trim-lookup API (returned 30 real Porsche 911 trims and populated the native `<select>` correctly — verified via DOM/network inspection since native `<select>` dropdowns don't render in automation screenshots), `/admin` hub's four cards all link correctly, `/admin/induct-selection` → Single Unit/Bulk Array, `/admin/mass-induct`'s CSV format instructions and drop zone, `/admin/cars/[id]`'s full edit form (specs, compliance, DVLA fields) loading real data correctly, and `/sign-in` correctly redirecting an already-authenticated session straight to `/home`.
+
 ## ✅ Done: fixed broken `/cars` card layout + live browser verification pass
 
 User caught this live in production before I did: `/cars` had collapsed into raw overlapping text with no images, borders, or spacing.
@@ -63,6 +86,9 @@ Goal: make the non-admin pages feel more dynamic and fast, CSS-only (no new moti
 ---
 
 # Known problems backlog (what's left)
+
+## Needs production monitoring (fixed, but the real root cause is unconfirmed)
+- **`/cars/[car_id]` intermittent crash — fix applied, not yet re-verified live.** See the "fixed every problem found in the full-site audit" entry above for what changed (`try/catch` + retry around the page's `Promise.all`, plus new `error.tsx`/`global-error.tsx` boundaries app-wide). The exact server-side exception was never confirmed from Vercel's logs (no dashboard access in-session), so this addresses the strongest suspect rather than a proven cause. **Worth a Claude in Chrome pass against the Vercel dashboard's function logs** to find the real digest/stack trace and confirm the fix actually addresses it, and worth re-running the same click-through-multiple-cars repro from this audit after the next deploy to see if it still reproduces.
 
 ## Infra-only — needs manual action in a dashboard, can't be fixed by changing code
 - **Set `CRON_SECRET` and `DVLA_SYNC_CONCURRENCY` in Vercel's Production environment variables.** Neither is set today. The weekly DVLA sync cron will 401 on every run until this is done.

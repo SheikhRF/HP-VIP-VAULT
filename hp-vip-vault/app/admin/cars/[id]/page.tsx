@@ -21,7 +21,19 @@ export default async function AdminCarEditPage({
   );
 
   const { data: car } = await supabase.from("cars").select("*").eq("car_id", Number(id)).single();
-  if (!car) return <div className="p-20 text-white font-black uppercase text-center">Asset Not Found</div>;
+  if (!car) {
+    return (
+      <>
+        <Navbar />
+        <main className="min-h-screen bg-background text-foreground flex items-center justify-center p-6">
+          <div className="text-center space-y-4">
+            <h1 className="text-4xl font-black italic uppercase text-primary">Asset Not Found</h1>
+            <Link href="/admin/dashboard" className="text-xs font-bold uppercase tracking-[0.3em] text-white underline underline-offset-8">Return to Fleet</Link>
+          </div>
+        </main>
+      </>
+    );
+  }
 
   return (
     <>

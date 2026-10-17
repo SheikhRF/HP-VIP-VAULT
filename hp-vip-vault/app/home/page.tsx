@@ -84,7 +84,7 @@ export default async function Home() {
             <div className="relative z-10">
               <div className="mb-8">
                 <h2 className="text-3xl font-black italic uppercase tracking-tighter text-white">Instagram</h2>
-                <p className="text-[10px] text-primary uppercase tracking-[0.3em] font-bold">@horespower.vip </p>
+                <p className="text-[10px] text-primary uppercase tracking-[0.3em] font-bold">@horsepower.vip</p>
               </div>
               <div className="rounded-2xl overflow-hidden border border-white/5 bg-black/40 p-4 backdrop-blur-sm">
                 <InstagramWidget />
