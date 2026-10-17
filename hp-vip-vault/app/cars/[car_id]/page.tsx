@@ -18,13 +18,6 @@ function getSupabase() {
   return createClient(url, key);
 }
 
-// Format price with commas
-const formatPrice = (price: number | string | null) => {
-  if (!price) return "POA";
-  const num = typeof price === 'string' ? parseInt(price) : price;
-  return new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP', maximumFractionDigits: 0 }).format(num);
-};
-
 function SpecRow({ label, value }: { label: string; value: any }) {
   if (value === null || value === undefined || value === "") return null;
   return (
@@ -174,10 +167,7 @@ export default async function CarDetailPage({
                 <p className="text-[10px] font-black uppercase tracking-[0.3em] mb-2 opacity-70">Valuation</p>
                 <h3 className="text-4xl font-black italic tracking-tighter uppercase mb-6">
                   {car.price ? (
-                    <CountUp
-                      value={Number(car.price)}
-                      format={(n) => formatPrice(Math.round(n))}
-                    />
+                    <CountUp value={Number(car.price)} format="currency" />
                   ) : (
                     "POA"
                   )}

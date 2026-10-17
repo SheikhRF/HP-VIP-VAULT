@@ -2,15 +2,23 @@
 
 import { useEffect, useRef, useState } from "react";
 
+const FORMATTERS = {
+  number: (n: number) => Math.round(n).toLocaleString(),
+  currency: (n: number) =>
+    new Intl.NumberFormat("en-GB", { style: "currency", currency: "GBP", maximumFractionDigits: 0 }).format(
+      Math.round(n)
+    ),
+};
+
 export default function CountUp({
   value,
   duration = 1200,
-  format = (n: number) => Math.round(n).toLocaleString(),
+  format = "number",
   className = "",
 }: {
   value: number;
   duration?: number;
-  format?: (n: number) => string;
+  format?: keyof typeof FORMATTERS;
   className?: string;
 }) {
   const ref = useRef<HTMLSpanElement>(null);
@@ -54,7 +62,7 @@ export default function CountUp({
 
   return (
     <span ref={ref} className={className}>
-      {format(display)}
+      {FORMATTERS[format](display)}
     </span>
   );
 }
