@@ -1,16 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { X } from "lucide-react";
 import ParticleField, { ParticleVariant } from "@/components/ParticleField";
 import { Button } from "@/components/ui/button";
 
 const VARIANTS: { id: ParticleVariant; name: string; blurb: string }[] = [
-  { id: "ghost-fleet", name: "Ghost Fleet", blurb: "Drifting car silhouettes, extends the existing CarFront ghost-icon treatment" },
+  { id: "ghost-fleet", name: "Ghost Fleet", blurb: "Reworked: fewer, larger, bolder silhouettes with an orange roofline accent so they actually read as cars" },
   { id: "night-drive", name: "Night Drive", blurb: "Headlight / taillight streaks, like distant traffic passing" },
   { id: "telemetry-grid", name: "Telemetry Grid", blurb: "Diagnostic node network with traveling data pulses" },
-  { id: "lane-dash", name: "Rolling Odometer", blurb: "Road lane-marking dashes streaming past" },
-  { id: "hybrid", name: "Hybrid", blurb: "Ghost Fleet + Night Drive layered together" },
+  { id: "rolling-road", name: "Rolling Road", blurb: "New: dashes warp outward from a vanishing point, like a road rushing under the car" },
+  { id: "speed-lines", name: "Speed Lines", blurb: "New: flickering motion lines radiating from a corner, comic-style rush of speed" },
+  { id: "checkered-drift", name: "Checkered Drift", blurb: "New: tiny checkered-flag squares drifting — a racing motif without literal car shapes" },
+  { id: "tire-tracks", name: "Tire Tracks", blurb: "New: curved skid marks that draw in, hold, then fade — like a car just drifted through" },
 ];
 
 function PreviewCard({ variant, name, blurb, opacity, onFullscreen }: {
@@ -49,6 +51,15 @@ export default function ParticleDemoClient() {
   const [fullscreen, setFullscreen] = useState<ParticleVariant | null>(null);
 
   const activeVariant = VARIANTS.find((v) => v.id === fullscreen);
+
+  useEffect(() => {
+    if (!fullscreen) return;
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setFullscreen(null);
+    };
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, [fullscreen]);
 
   return (
     <main className="min-h-screen bg-background text-white px-6 pt-32 pb-20">
@@ -94,20 +105,24 @@ export default function ParticleDemoClient() {
       </div>
 
       {fullscreen && activeVariant && (
-        <div className="fixed inset-0 z-[100] bg-black">
+        <div className="fixed inset-0 z-[100] bg-black" onClick={() => setFullscreen(null)}>
           <ParticleField variant={fullscreen} opacity={opacity} />
-          <button
-            onClick={() => setFullscreen(null)}
-            className="absolute top-8 right-8 z-10 flex items-center justify-center w-12 h-12 rounded-full bg-[#1a1a1a] border border-gray-800 text-white hover:border-orange-500 transition-colors"
-          >
-            <X size={18} />
-          </button>
-          <div className="relative z-10 h-full flex flex-col items-center justify-center text-center px-6 space-y-4">
+          {/* decorative only — pointer-events-none so it never sits on top of the close button */}
+          <div className="relative z-10 h-full flex flex-col items-center justify-center text-center px-6 space-y-4 pointer-events-none">
             <p className="text-[10px] text-orange-500 font-black uppercase tracking-[0.3em]">{activeVariant.name}</p>
             <h2 className="text-6xl md:text-8xl font-black italic uppercase tracking-tighter text-white leading-none">
               The <span className="text-orange-500">Collection</span>
             </h2>
           </div>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setFullscreen(null);
+            }}
+            className="absolute top-8 right-8 z-20 flex items-center justify-center w-12 h-12 rounded-full bg-[#1a1a1a] border border-gray-800 text-white hover:border-orange-500 transition-colors"
+          >
+            <X size={18} />
+          </button>
         </div>
       )}
     </main>
