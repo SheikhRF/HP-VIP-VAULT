@@ -14,11 +14,34 @@ function randItem<T>(arr: T[]): T {
 
 const RAIN_CHARS = "01KMPHRPM°ΔΣ/\\|:.=+-".split("");
 
-const CAR_ART = [
-  "      ______",
-  "   __/  __  \\_____",
-  "  |  __/    \\__   \\",
-  " O|_/        \\_|  O",
+// A few side-profile silhouettes for variety across drifting instances —
+// each sized ~45-55 chars wide by 5 lines so it reads as "car", not noise,
+// once scaled up on canvas.
+const CAR_ARTS = [
+  // low, wide coupe
+  [
+    "                   ________________",
+    "             _____/  ___________   \\________",
+    "            /       /           \\            \\",
+    "        ___|_______/             \\____________|",
+    "       (@)=========================           (@)",
+  ],
+  // hatchback, boxier roofline
+  [
+    "              ______________________",
+    "          ___/----------------------\\___",
+    "         /                               \\",
+    "     ___|_______________________________|___",
+    "    (@)===========================        (@)",
+  ],
+  // long-hood muscle car, cabin set further back
+  [
+    "                              _____________",
+    "                    _________/   _______   \\___",
+    "                   /            /       \\      \\",
+    "        __________|____________/         \\______|",
+    "       (@)======================================(@)",
+  ],
 ];
 
 const HEX = "0123456789ABCDEF";
@@ -48,7 +71,7 @@ function telemetryLine(): string {
 
 type Drop = { y: number; speed: number };
 type TelemetrySlot = { text: string; flash: number };
-type CarInstance = { x: number; y: number; vx: number; vy: number; scale: number; opacity: number };
+type CarInstance = { x: number; y: number; vx: number; vy: number; scale: number; opacity: number; art: number };
 type WarpChar = { angle: number; radius: number; speed: number };
 
 export default function AsciiField({
@@ -109,14 +132,15 @@ export default function AsciiField({
         const rows = Math.round(10 * density);
         telemetrySlots = Array.from({ length: rows }, () => ({ text: telemetryLine(), flash: 0 }));
       } else if (variant === "ascii-car") {
-        const count = Math.max(2, Math.round(4 * density));
+        const count = Math.max(2, Math.round(3 * density));
         cars = Array.from({ length: count }, () => ({
           x: rand(0, width),
           y: rand(0, height),
-          vx: rand(-0.3, -0.1),
-          vy: rand(0.02, 0.06),
-          scale: rand(0.8, 1.6),
-          opacity: rand(0.5, 1),
+          vx: rand(-0.25, -0.08),
+          vy: rand(0.015, 0.045),
+          scale: rand(0.7, 1.3),
+          opacity: rand(0.6, 1),
+          art: Math.floor(rand(0, CAR_ARTS.length)),
         }));
       } else if (variant === "ascii-hyperspeed") {
         const count = Math.round(60 * density);
@@ -170,17 +194,18 @@ export default function AsciiField({
       ctx!.clearRect(0, 0, width, height);
       const lineHeight = fontSize * 0.95;
       for (const c of cars) {
+        const art = CAR_ARTS[c.art];
         c.x += c.vx;
         c.y += c.vy;
-        const artWidth = Math.max(...CAR_ART.map((l) => l.length)) * colWidth * c.scale;
-        const artHeight = CAR_ART.length * lineHeight * c.scale;
+        const artWidth = Math.max(...art.map((l) => l.length)) * colWidth * c.scale;
+        const artHeight = art.length * lineHeight * c.scale;
         if (c.x < -artWidth) c.x = width + artWidth;
         if (c.y > height + artHeight) c.y = -artHeight;
 
         ctx!.save();
         ctx!.font = `${fontSize * c.scale}px monospace`;
-        ctx!.fillStyle = `rgba(255,255,255,${0.12 * c.opacity * opacity})`;
-        CAR_ART.forEach((line, i) => {
+        ctx!.fillStyle = `rgba(255,255,255,${0.16 * c.opacity * opacity})`;
+        art.forEach((line, i) => {
           ctx!.fillText(line, c.x, c.y + i * lineHeight * c.scale);
         });
         ctx!.restore();
