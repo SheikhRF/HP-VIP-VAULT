@@ -154,12 +154,12 @@ export default function AsciiField({
       const originY = 40;
       for (let i = 0; i < telemetrySlots.length; i++) {
         const slot = telemetrySlots[i];
-        if (Math.random() < 0.0025 * density) {
+        if (Math.random() < 0.0006 * density) {
           slot.text = telemetryLine();
           slot.flash = 1;
         }
-        slot.flash *= 0.985;
-        const alpha = (0.12 + slot.flash * 0.35) * opacity;
+        slot.flash *= 0.97;
+        const alpha = (0.055 + slot.flash * 0.15) * opacity;
         ctx!.fillStyle = `rgba(249,115,22,${alpha})`;
         ctx!.fillText(slot.text, originX, originY + i * (fontSize + 6));
       }
