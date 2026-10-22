@@ -1,5 +1,6 @@
 "use client";
 
+import { createPortal } from "react-dom";
 import { AlertTriangle } from "lucide-react";
 
 export function ConfirmDialog({
@@ -21,9 +22,9 @@ export function ConfirmDialog({
 }) {
   if (!open) return null;
 
-  return (
+  return createPortal(
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/80 backdrop-blur-sm"
+      className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/90 backdrop-blur-xl"
       onClick={onCancel}
     >
       <div
@@ -54,6 +55,7 @@ export function ConfirmDialog({
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
