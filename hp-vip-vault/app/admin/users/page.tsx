@@ -70,7 +70,7 @@ export default async function AdminUsersPage() {
           </div>
 
           {/* USERS TABLE */}
-          <UserRegistrySearch users={usersWithCounts ?? []} />
+          <UserRegistrySearch users={usersWithCounts ?? []} currentUserId={userId} />
         </div>
       </main>
     </>
