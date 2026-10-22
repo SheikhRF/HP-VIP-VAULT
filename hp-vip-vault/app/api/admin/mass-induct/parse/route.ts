@@ -5,6 +5,43 @@ import { requireAdmin } from "@/lib/auth/requireAdmin";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+const MAX_ATTEMPTS = 3;
+const BASE_DELAY_MS = 500;
+
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function isRetryableAnthropicError(err: unknown): boolean {
+  if (!(err instanceof Anthropic.APIError)) return false;
+  const status = err.status;
+  return status === 429 || (typeof status === "number" && status >= 500);
+}
+
+async function createMessageWithRetry(
+  anthropic: Anthropic,
+  params: Anthropic.MessageCreateParamsNonStreaming
+): Promise<Anthropic.Message> {
+  let lastError: unknown;
+
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+    try {
+      return await anthropic.messages.create(params);
+    } catch (err) {
+      lastError = err;
+
+      if (!isRetryableAnthropicError(err) || attempt === MAX_ATTEMPTS) {
+        throw err;
+      }
+
+      const backoffMs = BASE_DELAY_MS * 2 ** (attempt - 1);
+      await sleep(backoffMs);
+    }
+  }
+
+  throw lastError;
+}
+
 const EXTRACT_CARS_TOOL: Anthropic.Tool = {
   name: "extract_cars",
   description: "Extract a structured list of cars from free-form text describing a fleet to be added.",
@@ -56,7 +93,7 @@ export async function POST(req: Request) {
 
   let message;
   try {
-    message = await anthropic.messages.create({
+    message = await createMessageWithRetry(anthropic, {
       model: "claude-sonnet-4-5",
       max_tokens: 4096,
       tools: [EXTRACT_CARS_TOOL],
@@ -91,5 +128,18 @@ export async function POST(req: Request) {
     }))
     .filter((c) => c.make || c.model || c.registration);
 
-  return NextResponse.json({ ok: true, cars: normalized });
+  // Dedup: prefer registration as the key (when present), falling back to a
+  // case-insensitive make+model combo for cars with no registration. Keeps
+  // the first occurrence of each.
+  const seen = new Set<string>();
+  const deduped = normalized.filter((c) => {
+    const key = c.registration
+      ? `reg:${c.registration}`
+      : `makemodel:${c.make.toLowerCase()}|${c.model.toLowerCase()}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+
+  return NextResponse.json({ ok: true, cars: deduped });
 }
