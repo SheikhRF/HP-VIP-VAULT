@@ -7,6 +7,8 @@ const nextConfig: NextConfig = {
   images: {
   remotePatterns: [
     { protocol: "https", hostname: "lnwltmhmqjnzrnbjtcce.supabase.co" },
+    { protocol: "https", hostname: "*.cdninstagram.com" },
+    { protocol: "https", hostname: "*.fbcdn.net" },
   ],
 },
 };

@@ -5,8 +5,11 @@ export default async function Navbar() {
     const { sessionClaims } = await auth();
     // Supporting both 'Role' and 'role' for safety
     const isAdmin = sessionClaims?.Role === "admin" || sessionClaims?.role === "admin";
+    const isDriver = sessionClaims?.Role === "driver" || sessionClaims?.role === "driver";
 
-    const navItems = ["Home","Cars","About","Contact"];
+    const navItems = ["Home","Cars"];
+    if (isDriver || isAdmin) navItems.push("Trips");
+    navItems.push("About","Contact");
     if (isAdmin) navItems.push("Admin");
 
     return (
@@ -57,7 +60,7 @@ export default async function Navbar() {
                     <div className="flex flex-col items-end">
                         <span className="text-[7px] font-black uppercase tracking-[0.3em] text-gray-500 leading-none">Access Level</span>
                         <span className="text-[9px] font-black uppercase tracking-widest text-white leading-none mt-1">
-                            {isAdmin ? "Admin" : "Standard"}
+                            {isAdmin ? "Admin" : isDriver ? "Driver" : "Standard"}
                         </span>
                     </div>
                 </div>

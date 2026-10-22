@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Search, X, Shield, Users, Route } from "lucide-react";
+import { Search, X, Shield, Users, Route, Car } from "lucide-react";
 import Link from "next/link";
 import GlowCopy from "@/components/ui/glow-copy";
 import UserRowActions from "@/components/admin/UserRowActions";
@@ -93,9 +93,11 @@ export default function UserRegistrySearch({ users, currentUserId }: { users: Us
                   <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full border text-[9px] font-black uppercase tracking-widest ${
                     user.role === 'admin'
                       ? 'bg-orange-500/10 border-orange-500/20 text-orange-500'
+                      : user.role === 'driver'
+                      ? 'bg-blue-500/10 border-blue-500/20 text-blue-400'
                       : 'bg-white/5 border-white/10 text-gray-400'
                   }`}>
-                    {user.role === 'admin' ? <Shield size={10} /> : <Users size={10} />}
+                    {user.role === 'admin' ? <Shield size={10} /> : user.role === 'driver' ? <Car size={10} /> : <Users size={10} />}
                     {user.role}
                   </div>
                 </td>

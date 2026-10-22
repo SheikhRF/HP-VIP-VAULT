@@ -14,6 +14,12 @@ const isAdminRoute = createRouteMatcher([
   '/cars/add',
 ]);
 
+const isDriverRoute = createRouteMatcher([
+  '/trips',
+  '/trips/add',
+  '/trips/(.*)/edit',
+]);
+
 export default clerkMiddleware(async (auth, req) => {
   const { pathname } = req.nextUrl;
 
@@ -29,6 +35,17 @@ export default clerkMiddleware(async (auth, req) => {
     // by Clerk's Supabase integration (never "admin"); sessionClaims.Role is
     // this app's real role. See lib/auth/requireAdmin.ts for the full note.
     if (sessionClaims?.role !== 'admin' && sessionClaims?.Role !== 'admin') {
+      const url = new URL('/home', req.url);
+      return Response.redirect(url);
+    }
+  }
+
+  // 2b. Check Driver Routes (My Trips list, add trip, edit trip) — admins
+  // pass too, since admins can access every page.
+  if (isDriverRoute(req)) {
+    const { sessionClaims } = await auth();
+    const role = sessionClaims?.Role ?? sessionClaims?.role;
+    if (role !== 'driver' && role !== 'admin') {
       const url = new URL('/home', req.url);
       return Response.redirect(url);
     }

@@ -23,3 +23,26 @@ export async function requireAdmin() {
   }
   return { ok: true as const, userId };
 }
+
+// Same two-claim caveat as isAdminClaims above: `role` is permanently
+// "authenticated" (Supabase-managed, never "driver"/"admin"); `Role` is the
+// real app role. Admins count as drivers here since they can access every
+// page, including trip logging/editing.
+export function isDriverOrAdminClaims(sessionClaims: Record<string, unknown> | null | undefined) {
+  return (
+    sessionClaims?.role === "driver" ||
+    sessionClaims?.Role === "driver" ||
+    isAdminClaims(sessionClaims)
+  );
+}
+
+export async function requireDriverOrAdmin() {
+  const { userId, sessionClaims } = await auth();
+  if (!userId) {
+    return { ok: false as const, response: NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 }) };
+  }
+  if (!isDriverOrAdminClaims(sessionClaims)) {
+    return { ok: false as const, response: NextResponse.json({ ok: false, error: "Forbidden" }, { status: 403 }) };
+  }
+  return { ok: true as const, userId };
+}
