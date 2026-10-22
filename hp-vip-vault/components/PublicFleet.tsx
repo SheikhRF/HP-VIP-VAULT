@@ -1,8 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Search, X, ChevronRight, SlidersHorizontal } from "lucide-react";
-import Link from "next/link";
+import { Search, X } from "lucide-react";
 import CarCard from "./CarCard";
 
 

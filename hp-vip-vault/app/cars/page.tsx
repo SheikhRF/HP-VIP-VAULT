@@ -15,6 +15,13 @@ const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 export const dynamic = "force-dynamic";
 
+interface FleetCar {
+  car_id: number;
+  make: string | null;
+  model: string | null;
+  pictures: string[];
+}
+
 export default async function CarsPage() {
   const { sessionClaims } = await auth();
   const isAdmin = sessionClaims?.Role === "admin" || sessionClaims?.role === "admin";
@@ -24,7 +31,7 @@ export default async function CarsPage() {
     .select("car_id, make, model, pictures")
     .order('car_id', { ascending: false });
 
-  const cars = (data || []) as any[];
+  const cars = (data || []) as FleetCar[];
 
   return (
     <>

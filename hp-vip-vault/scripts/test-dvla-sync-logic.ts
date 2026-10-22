@@ -8,6 +8,7 @@
  *   npx tsx scripts/test-dvla-sync-logic.ts
  */
 
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { runWithConcurrency } from "../lib/dvla/concurrencyLimiter";
 import { fetchDvlaWithRetry, syncOneCar } from "../lib/dvla/syncFleet";
 
@@ -32,7 +33,7 @@ async function testRetriesOnRateLimitThenSucceeds() {
   let calls = 0;
   const fetchFn = async () => fakeResponse(statuses[calls++], { motStatus: "Valid" });
 
-  const result = await fetchDvlaWithRetry("AB12CDE", fetchFn as any);
+  const result = await fetchDvlaWithRetry("AB12CDE", fetchFn);
   check("retries on 429 then succeeds", result.ok === true && calls === 3, `calls=${calls}`);
 }
 
@@ -43,7 +44,7 @@ async function testNoRetryOnTerminalError() {
     return fakeResponse(404);
   };
 
-  const result = await fetchDvlaWithRetry("AB12CDE", fetchFn as any);
+  const result = await fetchDvlaWithRetry("AB12CDE", fetchFn);
   check("no retry on 404 (terminal)", result.ok === false && calls === 1, `calls=${calls}`);
 }
 
@@ -54,7 +55,7 @@ async function testGivesUpAfterMaxAttempts() {
     return fakeResponse(429);
   };
 
-  const result = await fetchDvlaWithRetry("AB12CDE", fetchFn as any);
+  const result = await fetchDvlaWithRetry("AB12CDE", fetchFn);
   check("gives up after max attempts on repeated 429", result.ok === false && calls === 3, `calls=${calls}`);
 }
 
@@ -73,18 +74,25 @@ async function testConcurrencyLimitRespected() {
   check("concurrency limit respected", maxRunning <= 3, `maxRunning=${maxRunning}`);
 }
 
+interface CarUpdatePayload {
+  mot: string | null;
+  tax_status: string | null;
+  tax_due_date: string | null;
+  last_synced_at: string;
+}
+
 async function testSyncOneCarPayloadShape() {
-  let updatePayload: any = null;
+  let updatePayload: CarUpdatePayload | null = null;
   const fakeSupabase = {
     from() {
       return {
-        update(payload: any) {
+        update(payload: CarUpdatePayload) {
           updatePayload = payload;
           return { eq: async () => ({ error: null }) };
         },
       };
     },
-  } as any;
+  } as unknown as SupabaseClient;
 
   const fetchFn = async () =>
     fakeResponse(200, {
@@ -93,16 +101,22 @@ async function testSyncOneCarPayloadShape() {
       artEndDate: "2026-01-01",
     });
 
-  const result = await syncOneCar(fakeSupabase, { car_id: "1", registration: "AB12CDE" }, fetchFn as any);
+  const result = await syncOneCar(fakeSupabase, { car_id: "1", registration: "AB12CDE" }, fetchFn);
 
   check("syncOneCar succeeds", result.ok === true);
+  // Widen explicitly: `update()` mutates `updatePayload` from inside a nested
+  // closure that TS can't see invoked here, so it would otherwise narrow the
+  // read below to the initializer's literal `null` type.
+  const payload = updatePayload as CarUpdatePayload | null;
+  const payloadOk =
+    payload !== null &&
+    payload.mot === "Valid" &&
+    payload.tax_status === "Taxed" &&
+    payload.tax_due_date === "2026-01-01" &&
+    typeof payload.last_synced_at === "string";
   check(
     "update payload has exact expected fields",
-    updatePayload &&
-      updatePayload.mot === "Valid" &&
-      updatePayload.tax_status === "Taxed" &&
-      updatePayload.tax_due_date === "2026-01-01" &&
-      typeof updatePayload.last_synced_at === "string",
+    payloadOk,
     JSON.stringify(updatePayload)
   );
 }

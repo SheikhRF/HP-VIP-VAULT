@@ -3,7 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import { getFirstName } from "@/lib/user/claims";
 import InstagramWidget from "@/components/InstagramWidget";
 import Link from "next/link";
-import { ChevronRight, Zap } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import CarCard from "@/components/CarCard";
 import Reveal from "@/components/Reveal";
 import SpeedBackdrop from "@/components/SpeedBackdrop";

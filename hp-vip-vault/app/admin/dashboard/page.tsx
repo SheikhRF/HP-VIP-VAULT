@@ -1,9 +1,8 @@
 // app/admin/dashboard/page.tsx
 import { createClient } from "@supabase/supabase-js";
 import Navbar from "@/components/navbar";
-import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Activity, ArrowLeft } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { SyncFleetButton } from "@/components/admin/SyncFleetButton";
 import Link from "next/link";
 import ServiceReminder from "@/components/admin/ServiceReminder";

@@ -1,13 +1,12 @@
 import Link from "next/link";
 import Navbar from "@/components/navbar";
 import { 
-  PlusSquare, 
-  LayoutDashboard, 
-  Route, 
-  ChevronRight, 
+  PlusSquare,
+  LayoutDashboard,
+  Route,
+  ChevronRight,
   Activity,
   Users, // Added for User Management
-  ShieldCheck
 } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 

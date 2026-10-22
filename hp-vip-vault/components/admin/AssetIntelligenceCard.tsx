@@ -5,10 +5,19 @@ import { useRef, useState } from "react";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Gauge, Zap, ChevronRight, AlertTriangle, ShieldCheck, Activity, Banknote, Coins, CreditCard, Calendar} from "lucide-react";
-import { needsAttention } from "@/lib/cars/status";
+import { Gauge, ChevronRight, AlertTriangle, ShieldCheck, Activity, Banknote, Calendar} from "lucide-react";
+import { needsAttention, CarComplianceFields } from "@/lib/cars/status";
 
-export default function AssetIntelligenceCard({ car }: { car: any }) {
+export interface DashboardCar extends CarComplianceFields {
+  car_id: number;
+  make: string | null;
+  model: string | null;
+  registration: string | null;
+  mileage: number | null;
+  price: number | null;
+}
+
+export default function AssetIntelligenceCard({ car }: { car: DashboardCar }) {
   const divRef = useRef<HTMLDivElement>(null);
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [opacity, setOpacity] = useState(0);

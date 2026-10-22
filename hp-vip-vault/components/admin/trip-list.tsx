@@ -4,7 +4,17 @@ import { useState } from "react";
 import { ArrowUpRight } from "lucide-react";
 import Link from "next/link"; // Added for navigation
 
-export default function TripList({ initialTrips }: { initialTrips: any[] }) {
+interface Trip {
+  trip_id: number;
+  car_name: string;
+  car_plate: string;
+  user_name: string;
+  mileage_before: number;
+  mileage_after: number;
+  start_date: string;
+}
+
+export default function TripList({ initialTrips }: { initialTrips: Trip[] }) {
   const [trips, setTrips] = useState(initialTrips);
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(initialTrips.length >= 10);

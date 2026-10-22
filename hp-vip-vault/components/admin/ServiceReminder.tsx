@@ -2,15 +2,16 @@
 
 import React, { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { Calendar, CheckCircle2, Loader2, X, ChevronDown, ChevronUp, AlertTriangle, CalendarArrowUp } from "lucide-react";
+import { Calendar, CheckCircle2, Loader2, X, ChevronDown, ChevronUp, AlertTriangle } from "lucide-react";
 import Link from "next/link";
 import { ErrorBanner } from "@/components/ui/error-banner";
+import type { DashboardCar } from "@/components/admin/AssetIntelligenceCard";
 
-export default function ServiceReminder({ cars }: { cars: any[] }) {
+export default function ServiceReminder({ cars }: { cars: DashboardCar[] }) {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedCar, setSelectedCar] = useState<{ id: number; reg: string } | null>(null);
+  const [selectedCar, setSelectedCar] = useState<{ id: number; reg: string | null } | null>(null);
   const [nextDate, setNextDate] = useState("");
   const [isUpdating, setIsUpdating] = useState(false);
   const [serviceError, setServiceError] = useState<string | null>(null);
@@ -19,7 +20,7 @@ export default function ServiceReminder({ cars }: { cars: any[] }) {
   const { reminders, hasCritical } = useMemo(() => {
     let criticalFound = false;
     const processed = cars
-      .filter((car) => car.service_date)
+      .filter((car): car is DashboardCar & { service_date: string } => Boolean(car.service_date))
       .map((car) => {
         const today = new Date();
         const dueDate = new Date(car.service_date);
@@ -38,7 +39,7 @@ export default function ServiceReminder({ cars }: { cars: any[] }) {
     return { reminders: processed, hasCritical: criticalFound };
   }, [cars]);
 
-  const openServiceModal = (carId: number, registration: string) => {
+  const openServiceModal = (carId: number, registration: string | null) => {
     setSelectedCar({ id: carId, reg: registration });
     setNextDate(new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().split('T')[0]);
     setServiceError(null);
@@ -58,7 +59,7 @@ export default function ServiceReminder({ cars }: { cars: any[] }) {
       setIsUpdating(false);
       setIsModalOpen(false);
       router.refresh();
-    } catch (err) {
+    } catch {
       setServiceError("System Error: Update failed.");
       setIsUpdating(false);
     }

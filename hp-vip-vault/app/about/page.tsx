@@ -1,5 +1,5 @@
 import Navbar from "@/components/navbar";
-import { Shield, Activity, Users, Database, MapPin, Gauge, Lock } from "lucide-react";
+import { Shield, Users } from "lucide-react";
 import Reveal from "@/components/Reveal";
 import SpeedBackdrop from "@/components/SpeedBackdrop";
 

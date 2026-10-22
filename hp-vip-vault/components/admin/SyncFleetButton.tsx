@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { RefreshCcw, CheckCircle2, AlertCircle, History } from "lucide-react";
+import { RefreshCcw } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { ErrorBanner } from "@/components/ui/error-banner";
 
@@ -33,7 +33,7 @@ export function SyncFleetButton({ lastSync }: { lastSync: string }) {
       } else {
         setSyncError(data?.error || "Sync failed — DVLA service may be unavailable.");
       }
-    } catch (err) {
+    } catch {
       setSyncError("Sync failed — network error.");
     } finally {
       setSyncing(false);

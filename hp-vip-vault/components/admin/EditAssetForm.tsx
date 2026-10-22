@@ -5,12 +5,28 @@ import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { ErrorBanner } from "@/components/ui/error-banner";
 import {
-  Save, Trash2, Loader2, Wind, Scaling, Coins, MapPin, Settings2, ShieldAlert, Camera, X, Plus,
+  Save, Trash2, Loader2, Wind, Scaling, MapPin, Settings2, ShieldAlert, Camera, X, Plus,
   Calendar
 } from "lucide-react";
 import imageCompression from 'browser-image-compression';
 
-export default function EditAssetForm({ initialData }: { initialData: any }) {
+interface CarData {
+  car_id: number;
+  make?: string | null;
+  model?: string | null;
+  registration?: string | null;
+  location?: string | null;
+  price?: number | null;
+  mileage?: number | null;
+  service_date?: string | null;
+  pictures?: string[] | null;
+  mot?: string | null;
+  tax_status?: string | null;
+  tax_due_date?: string | null;
+  [key: string]: unknown;
+}
+
+export default function EditAssetForm({ initialData }: { initialData: CarData }) {
   const [formData, setFormData] = useState(initialData);
   const [photosToRemove, setPhotosToRemove] = useState<string[]>([]); // Track URLs to delete
   const [newPhotos, setNewPhotos] = useState<File[]>([]);
@@ -46,8 +62,8 @@ export default function EditAssetForm({ initialData }: { initialData: any }) {
       } else {
         throw new Error(result.error);
       }
-    } catch (err: any) {
-      setErrorMsg(`Decommissioning Failed: ${err.message}`);
+    } catch (err) {
+      setErrorMsg(`Decommissioning Failed: ${err instanceof Error ? err.message : String(err)}`);
     } finally {
       setIsDeleting(false);
     }
@@ -64,7 +80,7 @@ export default function EditAssetForm({ initialData }: { initialData: any }) {
       // 1. Append basic data
       Object.keys(formData).forEach(key => {
         if (key !== 'pictures') { 
-           fd.append(key, formData[key] ?? "");
+           fd.append(key, (formData[key] as string | number | null | undefined)?.toString() ?? "");
         }
       });
 
@@ -94,8 +110,8 @@ export default function EditAssetForm({ initialData }: { initialData: any }) {
       } else {
         throw new Error(result.error);
       }
-    } catch (err: any) {
-      setErrorMsg(err.message || "System link failure.");
+    } catch (err) {
+      setErrorMsg(err instanceof Error ? err.message : "System link failure.");
     } finally {
       setLoading(false);
       setIsCompressing(false);
@@ -287,11 +303,20 @@ export default function EditAssetForm({ initialData }: { initialData: any }) {
   );
 }
 
-function Field({ label, name, value, onChange, type = "text", icon }: any) {
+interface FieldProps {
+  label: string;
+  name: string;
+  value: unknown;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  type?: string;
+  icon?: React.ReactNode;
+}
+
+function Field({ label, name, value, onChange, type = "text", icon }: FieldProps) {
   return (
     <div className="space-y-1">
       <label className="text-[8px] font-black uppercase text-gray-500 ml-1 flex items-center gap-1">{icon} {label}</label>
-      <Input type={type} name={name} value={value ?? ""} onChange={onChange} className="bg-black border-white/5 text-white font-mono text-xs h-9 focus:border-orange-500/50" />
+      <Input type={type} name={name} value={(value as string | number | null) ?? ""} onChange={onChange} className="bg-black border-white/5 text-white font-mono text-xs h-9 focus:border-orange-500/50" />
     </div>
   );
 }

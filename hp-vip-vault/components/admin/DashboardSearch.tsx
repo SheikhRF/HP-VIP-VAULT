@@ -2,12 +2,12 @@
 
 import { useState, useMemo } from "react";
 import { Search, X, CheckCircle2, AlertTriangle, Car } from "lucide-react";
-import AssetIntelligenceCard from "@/components/admin/AssetIntelligenceCard";
+import AssetIntelligenceCard, { DashboardCar } from "@/components/admin/AssetIntelligenceCard";
 import { isDriveable, needsAttention } from "@/lib/cars/status";
 
 type FilterType = "all" | "driveable" | "attention";
 
-export default function DashboardSearch({ cars }: { cars: any[] }) {
+export default function DashboardSearch({ cars }: { cars: DashboardCar[] }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState<FilterType>("all");
 
@@ -32,7 +32,7 @@ export default function DashboardSearch({ cars }: { cars: any[] }) {
   const driveableCount = cars.filter(isDriveable).length;
   const attentionCount = cars.filter(needsAttention).length;
 
-  const filters: { key: FilterType; label: string; count: number; icon: any; activeClass: string }[] = [
+  const filters: { key: FilterType; label: string; count: number; icon: typeof Car; activeClass: string }[] = [
     {
       key: "all",
       label: "All Assets",

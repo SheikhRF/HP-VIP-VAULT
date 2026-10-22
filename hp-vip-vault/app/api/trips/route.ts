@@ -119,7 +119,7 @@ export async function POST(req: Request) {
         : "Trip logged. Car telemetry remains at current peak."
     });
 
-  } catch (err: any) {
+  } catch (err) {
     console.error("Internal API Error:", err);
     return NextResponse.json(
       { ok: false, error: "Internal Server Error" },

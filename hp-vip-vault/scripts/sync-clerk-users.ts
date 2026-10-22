@@ -28,8 +28,16 @@ if (!CLERK_SECRET_KEY || !SUPABASE_URL || !SUPABASE_KEY) {
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
+interface ClerkUser {
+  id: string;
+  first_name?: string | null;
+  last_name?: string | null;
+  email_addresses?: { email_address: string }[];
+  public_metadata?: Record<string, unknown>;
+}
+
 async function fetchAllClerkUsers() {
-  const allUsers: any[] = [];
+  const allUsers: ClerkUser[] = [];
   let offset = 0;
   const limit = 100;
 
@@ -81,8 +89,8 @@ async function syncUsers() {
     const primaryEmail = user.email_addresses?.[0]?.email_address ?? null;
 
     // Pull role from public_metadata, normalise to lowercase, fall back to 'user'
-    const meta = (user.public_metadata ?? {}) as Record<string, any>;
-    const role = (meta?.role ?? meta?.Role ?? "user").toLowerCase();
+    const meta = user.public_metadata ?? {};
+    const role = String(meta?.role ?? meta?.Role ?? "user").toLowerCase();
 
     console.log(`  👤 ${fullName} (${primaryEmail}) → role: ${role}`);
 

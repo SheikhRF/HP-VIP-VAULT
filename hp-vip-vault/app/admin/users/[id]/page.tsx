@@ -1,9 +1,20 @@
+import type { ReactNode } from "react";
 import { createClient } from "@supabase/supabase-js";
 import Navbar from "@/components/navbar";
 import { Zap, Route, Car } from "lucide-react";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import RoleToggle from "@/components/admin/RoleToggle";
+
+interface TripWithCar {
+  trip_id: number;
+  car_id: number;
+  mileage_before: number | null;
+  mileage_after: number | null;
+  rating: number;
+  start_date: string;
+  cars: { make: string | null; model: string | null } | null;
+}
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -39,11 +50,11 @@ export default async function UserDetailPage({ params }: { params: Promise<{ id:
     .order("start_date", { ascending: false });
 
   // 3. Calculate stats from trips
-  const totalMileage = trips?.reduce((acc: number, trip: any) => {
+  const totalMileage = trips?.reduce((acc: number, trip: TripWithCar) => {
     return acc + (Number(trip.mileage_after || 0) - Number(trip.mileage_before || 0));
   }, 0) || 0;
 
-  const uniqueCars = new Set(trips?.map((t: any) => t.car_id)).size;
+  const uniqueCars = new Set(trips?.map((t: TripWithCar) => t.car_id)).size;
 
   return (
     <>
@@ -87,7 +98,7 @@ export default async function UserDetailPage({ params }: { params: Promise<{ id:
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-white/5">
-                    {trips.map((trip: any) => (
+                    {trips.map((trip: TripWithCar) => (
                       <tr key={trip.trip_id} className="hover:bg-white/[0.01]">
                         <td className="px-8 py-6">
                           <p className="text-xs font-black uppercase italic">
@@ -121,7 +132,7 @@ export default async function UserDetailPage({ params }: { params: Promise<{ id:
   );
 }
 
-function StatCard({ icon, label, value }: { icon: any; label: string; value: any }) {
+function StatCard({ icon, label, value }: { icon: ReactNode; label: string; value: string | number }) {
   return (
     <div className="bg-white/[0.02] border border-white/5 p-8 rounded-3xl space-y-4">
       <div className="text-orange-500">{icon}</div>

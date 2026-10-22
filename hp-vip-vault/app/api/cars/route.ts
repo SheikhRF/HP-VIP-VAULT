@@ -109,7 +109,7 @@ export async function POST(req: Request) {
   const specs: Record<string, string> = top.specifications ?? {};
 
   // 2) Build DB row for initial insertion
-  const row: Record<string, any> = {
+  const row: Record<string, string | number | null | string[] | FormDataEntryValue> = {
     make: top.make ?? make,
     model: top.model ?? model,
     registration,
@@ -123,9 +123,9 @@ export async function POST(req: Request) {
     row[dbField] = specs[apiKey] ?? null;
   }
 
-  row.number_of_cylinders = parseInt(row.number_of_cylinders, 10) || null;
-  row.number_of_gears = parseInt(row.number_of_gears, 10) || null;
-  row.number_of_seats = parseInt(row.number_of_seats, 10) || null;
+  row.number_of_cylinders = parseInt(row.number_of_cylinders as string, 10) || null;
+  row.number_of_gears = parseInt(row.number_of_gears as string, 10) || null;
+  row.number_of_seats = parseInt(row.number_of_seats as string, 10) || null;
 
   // DVLA enrichment
   if (registration) {

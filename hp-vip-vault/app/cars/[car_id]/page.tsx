@@ -18,7 +18,7 @@ function getSupabase() {
   return createClient(url, key);
 }
 
-function SpecRow({ label, value }: { label: string; value: any }) {
+function SpecRow({ label, value }: { label: string; value: string | number | null | undefined }) {
   if (value === null || value === undefined || value === "") return null;
   return (
     <div className="flex items-center justify-between gap-4 border-b border-white/5 py-3 group hover:bg-white/[0.02] transition-colors px-2">

@@ -4,8 +4,8 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { ErrorBanner } from "@/components/ui/error-banner";
-import { 
-  Plus, Loader2, Wind, Scaling, MapPin, Search, Database, Camera, X, ChevronLeft, PoundSterling, Gauge, ShieldAlert, CheckCircle2, Calendar 
+import {
+  Plus, Loader2, MapPin, Database, Camera, X, ChevronLeft, PoundSterling, Gauge, ShieldAlert, CheckCircle2, Calendar
 } from "lucide-react";
 import imageCompression from 'browser-image-compression'; 
 
@@ -24,7 +24,7 @@ export default function AddAssetForm() {
     service_date: "",
   });
 
-  const [trims, setTrims] = useState<any[]>([]);
+  const [trims, setTrims] = useState<{ trim: string }[]>([]);
   const [photos, setPhotos] = useState<File[]>([]);
   const [loadingTrims, setLoadingTrims] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -70,7 +70,7 @@ export default function AddAssetForm() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Search Protocol Failed");
       setTrims(data.trims || []);
-    } catch (err: any) { setErrorMsg(err.message); }
+    } catch (err) { setErrorMsg(err instanceof Error ? err.message : "Search Protocol Failed"); }
     finally { setLoadingTrims(false); }
   }
 
@@ -90,7 +90,7 @@ export default function AddAssetForm() {
       if (!res.ok) throw new Error("Induction Protocol Failed");
       router.push("/admin/dashboard");
       router.refresh();
-    } catch (err: any) { setErrorMsg(err.message); setSubmitting(false); }
+    } catch (err) { setErrorMsg(err instanceof Error ? err.message : "Induction Protocol Failed"); setSubmitting(false); }
   }
 
   return (
@@ -237,7 +237,16 @@ export default function AddAssetForm() {
   );
 }
 
-function Field({ label, name, value, onChange, type = "text", icon }: any) {
+interface FieldProps {
+  label: string;
+  name: string;
+  value: string | number | null;
+  onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void;
+  type?: string;
+  icon?: React.ReactNode;
+}
+
+function Field({ label, name, value, onChange, type = "text", icon }: FieldProps) {
   return (
     <div className="space-y-1 group">
       <label className="text-[8px] font-black uppercase text-gray-500 ml-1 flex items-center gap-1  transition-colors">

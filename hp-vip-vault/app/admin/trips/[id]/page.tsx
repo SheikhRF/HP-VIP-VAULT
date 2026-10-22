@@ -1,6 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import Navbar from "@/components/navbar";
-import { ArrowRight, Car, User, Zap, Gauge, Calendar, Star, FileText } from "lucide-react";
+import { ArrowRight, Car, User, Star, FileText } from "lucide-react";
 import Link from "next/link";
 
 const supabase = createClient(

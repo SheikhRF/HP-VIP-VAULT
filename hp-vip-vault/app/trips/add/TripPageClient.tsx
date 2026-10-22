@@ -93,8 +93,8 @@ function TripForm() {
 
       router.push(`/cars/${carId}`);
       router.refresh();
-    } catch (err: any) {
-      setErrorMsg(err?.message ?? "System Error: Failed to log trip");
+    } catch (err) {
+      setErrorMsg(err instanceof Error ? err.message : "System Error: Failed to log trip");
     } finally {
       setSubmitting(false);
     }

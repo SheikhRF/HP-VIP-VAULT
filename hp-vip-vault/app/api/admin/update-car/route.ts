@@ -60,7 +60,7 @@ export async function POST(req: Request) {
       if (!carId) return NextResponse.json({ error: "Missing Asset ID" }, { status: 400 });
 
       // 1. Build update object from all form fields
-      const updateData: any = {};
+      const updateData: Record<string, FormDataEntryValue | string[] | null> = {};
       const fields = [
         "registration", "make", "model", "year_of_manufacture", "mot", 
         "tax_status", "tax_due_date", "acceleration_0_100", "body_type", 
@@ -145,11 +145,12 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ error: "Unsupported Protocol" }, { status: 415 });
 
-  } catch (error: any) {
-    console.error("Vault API Error:", error.message);
-    return NextResponse.json({ 
-      success: false, 
-      error: error.message || "Internal System Error" 
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Internal System Error";
+    console.error("Vault API Error:", message);
+    return NextResponse.json({
+      success: false,
+      error: message
     }, { status: 500 });
   }
 }

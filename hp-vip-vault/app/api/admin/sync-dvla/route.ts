@@ -18,7 +18,8 @@ export async function POST() {
     const supabase = createClient(supabaseUrl!, supabaseSecret!);
     const { updated, failed } = await syncFleet(supabase);
     return NextResponse.json({ ok: true, updated, failed });
-  } catch (error: any) {
-    return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Sync failed";
+    return NextResponse.json({ ok: false, error: message }, { status: 500 });
   }
 }
