@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Shield, Car, Users, Loader2 } from "lucide-react";
 import { ErrorBanner } from "@/components/ui/error-banner";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 
 type Role = "user" | "driver" | "admin";
 
@@ -26,14 +27,16 @@ export default function RoleToggle({ userId, role, userName }: { userId: string;
   const router = useRouter();
   const [updating, setUpdating] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [pendingRole, setPendingRole] = useState<Role | null>(null);
   const currentRole: Role = role === "admin" || role === "driver" ? role : "user";
 
-  const handleSelect = async (nextRole: Role) => {
+  const handleSelect = (nextRole: Role) => {
     if (nextRole === currentRole) return;
+    setPendingRole(nextRole);
+  };
 
-    const confirmed = confirm(CONFIRM_COPY[nextRole](userName));
-    if (!confirmed) return;
-
+  const commitRoleChange = async (nextRole: Role) => {
+    setPendingRole(null);
     setErrorMsg(null);
     setUpdating(true);
     try {
@@ -74,6 +77,15 @@ export default function RoleToggle({ userId, role, userName }: { userId: string;
         })}
       </div>
       <ErrorBanner message={errorMsg} />
+      <ConfirmDialog
+        open={pendingRole !== null}
+        title={pendingRole === "admin" ? "Grant Admin" : pendingRole === "driver" ? "Set Driver" : "Revoke Access"}
+        message={pendingRole ? CONFIRM_COPY[pendingRole](userName) : ""}
+        confirmLabel="Confirm"
+        cancelLabel="Cancel"
+        onConfirm={() => pendingRole && commitRoleChange(pendingRole)}
+        onCancel={() => setPendingRole(null)}
+      />
     </div>
   );
 }
