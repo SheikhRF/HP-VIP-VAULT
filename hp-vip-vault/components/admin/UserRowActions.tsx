@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { Trash2, Loader2, ChevronDown, Check } from "lucide-react";
 import { ErrorBanner } from "@/components/ui/error-banner";
@@ -125,32 +126,35 @@ export default function UserRowActions({
         </button>
       </div>
 
-      {menuOpen && menuPos && (
-        <div
-          ref={menuRef}
-          style={{ top: menuPos.top, left: menuPos.left }}
-          className="fixed z-50 w-40 bg-[#0a0a0a] border border-white/10 rounded-2xl p-1.5 shadow-[0_10px_40px_rgba(0,0,0,0.6)] animate-in fade-in zoom-in-95 duration-150"
-        >
-          {(Object.keys(ROLE_CONFIG) as Role[]).map((roleOption) => {
-            const { label, icon: Icon } = ROLE_CONFIG[roleOption];
-            const isActive = roleOption === currentRole;
-            return (
-              <button
-                key={roleOption}
-                type="button"
-                onClick={() => handleSelectRole(roleOption)}
-                className={`w-full flex items-center gap-2 px-3 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-colors ${
-                  isActive ? "bg-white/5 text-white" : "text-gray-400 hover:bg-white/5 hover:text-white"
-                }`}
-              >
-                <Icon size={10} />
-                <span className="flex-1 text-left">{label}</span>
-                {isActive && <Check size={10} className="text-orange-500" />}
-              </button>
-            );
-          })}
-        </div>
-      )}
+      {menuOpen &&
+        menuPos &&
+        createPortal(
+          <div
+            ref={menuRef}
+            style={{ top: menuPos.top, left: menuPos.left }}
+            className="fixed z-[200] w-40 bg-[#0a0a0a] border border-white/10 rounded-2xl p-1.5 shadow-[0_10px_40px_rgba(0,0,0,0.6)] animate-in fade-in zoom-in-95 duration-150"
+          >
+            {(Object.keys(ROLE_CONFIG) as Role[]).map((roleOption) => {
+              const { label, icon: Icon } = ROLE_CONFIG[roleOption];
+              const isActive = roleOption === currentRole;
+              return (
+                <button
+                  key={roleOption}
+                  type="button"
+                  onClick={() => handleSelectRole(roleOption)}
+                  className={`w-full flex items-center gap-2 px-3 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-colors ${
+                    isActive ? "bg-white/5 text-white" : "text-gray-400 hover:bg-white/5 hover:text-white"
+                  }`}
+                >
+                  <Icon size={10} />
+                  <span className="flex-1 text-left">{label}</span>
+                  {isActive && <Check size={10} className="text-orange-500" />}
+                </button>
+              );
+            })}
+          </div>,
+          document.body
+        )}
 
       <ErrorBanner message={errorMsg} />
 
