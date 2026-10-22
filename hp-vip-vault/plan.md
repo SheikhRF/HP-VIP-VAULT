@@ -1,5 +1,14 @@
 # History
 
+## ✅ Done: inline role control + user removal on the admin Users Registry
+
+`/admin/users` previously only let admins view a search/filter table — changing a role or removing someone required opening that user's detail page (and removal wasn't possible at all). Both are now available directly on the table row.
+
+- **New `DELETE /api/admin/users/[id]`** (`app/api/admin/users/[id]/route.ts`, admin-gated via `requireAdmin()`): deletes the Clerk account, then the `profiles` row. Rejects a request where the target id is the calling admin's own id (no self-removal). `trips.user_id` has no FK to `profiles` (pre-existing schema design, see `CLAUDE.md`), so a removed user's trips are left orphaned rather than cascade-deleted — not a new gap, just worth knowing.
+- **New `components/admin/UserRowActions.tsx`**: compact per-row Promote/Revoke + Remove buttons, confirmation dialogs, `ErrorBanner` on failure — same pattern as the existing `components/admin/RoleToggle.tsx` on the user detail page, just sized for a table cell. Wired into `UserRegistrySearch.tsx`'s new "Actions" column; `app/admin/users/page.tsx` now passes the signed-in admin's own id down so the Remove button can disable itself on their own row.
+- Verified: `tsc --noEmit` clean, `eslint` clean on touched files, full `npm run build` succeeds (all 35 routes, including the new DELETE route, compile), `scripts/test-admin-claims.ts` passes. **Not yet done:** the role-toggle and remove actions haven't been click-tested against a real non-primary account — same verification gap as the existing `RoleToggle` noted below.
+- Branch `worktree-user-management`, PR #2: `https://github.com/SheikhRF/HP-VIP-VAULT/pull/2` (open, not yet merged).
+
 ## ✅ Done: found and fixed the real `/cars/[car_id]` crash — a function prop crossing the RSC boundary
 
 The first fix (below, commit `d614459`) addressed the *suspected* cause from the audit (a possible unhandled Promise rejection) and added error boundaries, but after deploying it I re-tested live rather than assuming it worked — and the crash was not only still happening, it was now reproducing on **every single car, every single time** (previously intermittent), each with its own stable digest. That ruled out "transient network hiccup" definitively and pointed at something deterministic in the render itself.
@@ -112,7 +121,8 @@ Nothing outstanding from the full-site audit — `/cars/[car_id]`'s crash is fix
 
 ## Verification gaps (things fixed but never confirmed end-to-end)
 - **Manual auth-fix verification never run.** The broken-access-control fixes on the admin API routes were unit-tested at the logic level, but nobody has hit them as a real non-admin authenticated account to confirm they 403 in practice — needs real Clerk test accounts I don't have credentials for.
-- **Role toggle mutation itself never exercised.** `RoleToggle`'s UI was confirmed rendering correctly on a real user (Vlad Apostol), but actually clicking "Grant/Revoke Admin Access" against production data was deliberately not done (not requested, and it's a real, consequential mutation on a live user's account) — so the `app/api/admin/users/[id]/role/route.ts` write path itself is still only logic-verified, not click-tested.
+- **Role toggle mutation itself never exercised.** `RoleToggle`'s UI was confirmed rendering correctly on a real user (Vlad Apostol), but actually clicking "Grant/Revoke Admin Access" against production data was deliberately not done (not requested, and it's a real, consequential mutation on a live user's account) — so the `app/api/admin/users/[id]/role/route.ts` write path itself is still only logic-verified, not click-tested. This also covers `UserRowActions.tsx`'s identical Promote/Revoke button on the `/admin/users` table row.
+- **User removal (`DELETE /api/admin/users/[id]`) never exercised against a real account.** Build/type/lint-verified only — deleting a real Clerk user and `profiles` row is a permanent, consequential mutation, so it hasn't been click-tested against production data (not requested, and there's no disposable test account to use).
 - **`/admin/dashboard`** — confirmed live: fleet status renders (20 assets, 16 alerts), `DashboardSearch` correctly filtered "mclaren" → 3 matching assets (including the fuzzy "Mercedes-Benz SLR McLaren" match) ✅
 - **`/admin/trips`** — confirmed live: `/api/admin/trips` route returns real trip records (asset, driver, distance, date) correctly — this directly confirms the RLS-blocked-query bug fix actually works in production, not just in logic. Only 7 trips exist total so true multi-page pagination (>10 rows) wasn't exercised, but the core fix (the route returning data at all) is verified. ✅
 - **Landing page `/`** — Hyperspeed WebGL scene renders correctly with the "UNLOCK VAULT" CTA, zero console errors on load (confirms the `next/dynamic` lazy-load and reduced-motion/visibility-check additions didn't break anything) ✅
