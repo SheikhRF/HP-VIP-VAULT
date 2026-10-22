@@ -4,6 +4,7 @@ import { useState, useMemo } from "react";
 import { Search, X, Shield, Users, Route, Car } from "lucide-react";
 import Link from "next/link";
 import GlowCopy from "@/components/ui/glow-copy";
+import UserRowActions from "@/components/admin/UserRowActions";
 
 type UserRow = {
   id: string;
@@ -14,7 +15,7 @@ type UserRow = {
   tripCount: number;
 };
 
-export default function UserRegistrySearch({ users }: { users: UserRow[] }) {
+export default function UserRegistrySearch({ users, currentUserId }: { users: UserRow[]; currentUserId: string }) {
   const [searchQuery, setSearchQuery] = useState("");
 
   const filteredUsers = useMemo(() => {
@@ -66,6 +67,7 @@ export default function UserRegistrySearch({ users }: { users: UserRow[] }) {
               <th className="px-8 py-6 text-[8px] font-black uppercase text-gray-500 tracking-[0.3em]">Clearance</th>
               <th className="px-8 py-6 text-[8px] font-black uppercase text-gray-500 tracking-[0.3em]">Drives</th>
               <th className="px-8 py-6 text-[8px] font-black uppercase text-gray-500 tracking-[0.3em]">Last Uplink</th>
+              <th className="px-8 py-6 text-[8px] font-black uppercase text-gray-500 tracking-[0.3em]">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-white/5">
@@ -114,6 +116,15 @@ export default function UserRegistrySearch({ users }: { users: UserRow[] }) {
                   <span className="text-[10px] font-bold text-gray-500 uppercase italic">
                     {new Date(user.updated_at).toLocaleDateString()}
                   </span>
+                </td>
+
+                <td className="px-8 py-6 relative z-10">
+                  <UserRowActions
+                    userId={user.id}
+                    role={user.role}
+                    userName={user.name || user.email}
+                    isSelf={user.id === currentUserId}
+                  />
                 </td>
               </tr>
             ))}
