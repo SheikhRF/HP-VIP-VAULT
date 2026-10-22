@@ -15,18 +15,19 @@ npm run lint      # eslint .
 
 There is no test suite/framework configured in this project (no test script in `package.json`). The two exceptions are framework-free regression scripts (plain assertions, no deps, same `npx tsx scripts/<name>.ts` pattern):
 - `npx tsx scripts/test-admin-claims.ts` — admin role-claim casing logic in `lib/auth/requireAdmin.ts`. Run after touching that file or any admin-check code.
+- `npx tsx scripts/test-driver-claims.ts` — driver/admin role-claim logic (`isDriverOrAdminClaims`) in `lib/auth/requireAdmin.ts`. Run after touching that file or any driver-check code.
 - `npx tsx scripts/test-dvla-sync-logic.ts` — retry/backoff and concurrency-limiter logic in `lib/dvla/syncFleet.ts` / `lib/dvla/concurrencyLimiter.ts`. Run after touching DVLA sync code.
 - `npx tsx scripts/test-car-status-logic.ts` — the shared "needs attention / driveable" logic in `lib/cars/status.ts`. Run after touching car compliance/status code.
 
 One-off migration script (not part of the app build): `npx tsx scripts/sync-clerk-users.ts` — backfills Clerk users into the Supabase `profiles` table. Requires `CLERK_SECRET_KEY`, `NEXT_PUBLIC_SUPABASE_URL`, `SUPABASE_SECRET_KEY` in `.env.local`.
 
-`npm run lint` works (not blocked by anything) but currently reports ~45 pre-existing `@typescript-eslint/no-explicit-any`/unused-import issues scattered across admin forms, API routes, and `Hyperspeed.tsx` — none are live bugs (`tsc --noEmit` and the build are clean), but don't be surprised by the count. Any *new* `any`/unused-import you introduce should still be fixed, not folded into that pre-existing debt.
+`npm run lint` works (not blocked by anything). The large pre-existing `@typescript-eslint/no-explicit-any`/unused-import backlog (~45 issues, previously scattered across admin forms, API routes, and `Hyperspeed.tsx`) has been cleaned up — `npm run lint` now reports only 8 small pre-existing problems (`react/no-unescaped-entities` in `app/about/page.tsx`, `@next/next/no-img-element` in a few admin forms, `react-hooks/exhaustive-deps` in `Hyperspeed.tsx`/`Reveal.tsx`), none of them `any`/unused-import. `tsc --noEmit` and the build are clean. Any *new* lint issue you introduce should still be fixed, not folded into that remaining pre-existing debt.
 
 ## Architecture
 
 **Stack:** Next.js 16 App Router + React 19 + TypeScript (strict) + Tailwind v4 + shadcn/ui-style components (`components/ui/`). Auth via Clerk, data/storage via Supabase, external data from the DVLA Vehicle Enquiry Service and API Ninjas. Path alias `@/*` maps to the app root (`hp-vip-vault/`).
 
-**Domain:** "Horsepower.VIP Vault" — a car-club fleet app. Members log trips/mileage against a shared fleet; admins manage the fleet (add/edit/delete cars, bulk-induct new cars, sync DVLA data) and users.
+**Domain:** "Horsepower.VIP Vault" — a car-club fleet app. Drivers log/edit/delete their own trips/mileage against a shared fleet (`/trips`, `/trips/add`); admins manage the fleet (add/edit/delete cars, bulk-induct new cars, sync DVLA data) and users/roles (`user`/`driver`/`admin`).
 
 **Data model** (confirmed directly against the Supabase project via a read-only catalog query — no migration files live in this repo, so this is the real schema, not inferred):
 - `cars` — PK `car_id` (`int8`, identity). `make`/`model`/`registration`/~15 spec fields are nullable `varchar` (populated from API Ninjas via `SPEC_MAP` in `app/api/cars/route.ts`), plus `mot`/`tax_status`/`tax_due_date` from DVLA. `mileage`/`price` are `int8`. `pictures` is `text[]`. `last_synced_at`/`"Times Stamp"` (note the space in that column name — it's real, not a typo to "fix") are `timestamptz`. `service_date` is `date`. Only index is the PK.
