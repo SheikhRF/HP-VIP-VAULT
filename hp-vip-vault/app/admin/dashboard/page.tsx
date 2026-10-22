@@ -4,6 +4,7 @@ import Navbar from "@/components/navbar";
 import { Separator } from "@/components/ui/separator";
 import { ArrowLeft } from "lucide-react";
 import { SyncFleetButton } from "@/components/admin/SyncFleetButton";
+import { InstagramSyncControls } from "@/components/admin/InstagramSyncControls";
 import Link from "next/link";
 import ServiceReminder from "@/components/admin/ServiceReminder";
 import DashboardSearch from "@/components/admin/DashboardSearch";
@@ -42,6 +43,7 @@ export default async function AdminDashboard() {
             </div>
             <div className="flex flex-wrap items-end gap-8 pb-2">
               <SyncFleetButton lastSync={lastSyncTimestamp || ""} />
+              <InstagramSyncControls />
               <div className="text-right">
                 <p className="text-[9px] font-bold uppercase tracking-[0.3em] text-gray-500 mb-1">Total Assets</p>
                 <p className="text-4xl font-black italic">{cars?.length || 0}</p>

@@ -3,6 +3,10 @@
     {
       "path": "/api/cron/sync-dvla",
       "schedule": "0 3 * * 0"
+    },
+    {
+      "path": "/api/cron/sync-instagram",
+      "schedule": "0 4 * * *"
     }
   ]
 }

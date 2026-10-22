@@ -1,7 +1,7 @@
 import Navbar from "@/components/navbar";
 import { createClient } from "@supabase/supabase-js";
 import { getFirstName } from "@/lib/user/claims";
-import InstagramWidget from "@/components/InstagramWidget";
+import InstagramFeed from "@/components/InstagramFeed";
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
 import CarCard from "@/components/CarCard";
@@ -87,7 +87,7 @@ export default async function Home() {
                 <p className="text-[10px] text-primary uppercase tracking-[0.3em] font-bold">@horsepower.vip</p>
               </div>
               <div className="rounded-2xl overflow-hidden border border-white/5 bg-black/40 p-4 backdrop-blur-sm">
-                <InstagramWidget />
+                <InstagramFeed />
               </div>
             </div>
           </Reveal>
