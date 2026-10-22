@@ -2,33 +2,17 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Shield, Car, Users, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { ErrorBanner } from "@/components/ui/error-banner";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
-
-type Role = "user" | "driver" | "admin";
-
-const ROLE_CONFIG: Record<Role, { label: string; icon: typeof Shield; activeClass: string }> = {
-  admin: { label: "Admin", icon: Shield, activeClass: "bg-orange-500/10 border-orange-500/20 text-orange-500" },
-  driver: { label: "Driver", icon: Car, activeClass: "bg-blue-500/10 border-blue-500/20 text-blue-400" },
-  user: { label: "User", icon: Users, activeClass: "bg-white/5 border-white/10 text-gray-400" },
-};
-
-const CONFIRM_COPY: Record<Role, (userName: string) => string> = {
-  admin: (userName) =>
-    `Grant admin clearance for ${userName}? They will gain full access to the admin vault immediately.`,
-  driver: (userName) =>
-    `Set ${userName} as a driver? They will be able to log and edit their own trips immediately.`,
-  user: (userName) =>
-    `Revoke ${userName} to a plain user? They will lose admin access and/or the ability to log or edit trips immediately.`,
-};
+import { ROLE_CONFIG, ROLE_CONFIRM_COPY, normalizeRole, type Role } from "@/lib/roles";
 
 export default function RoleToggle({ userId, role, userName }: { userId: string; role: string; userName: string }) {
   const router = useRouter();
   const [updating, setUpdating] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [pendingRole, setPendingRole] = useState<Role | null>(null);
-  const currentRole: Role = role === "admin" || role === "driver" ? role : "user";
+  const currentRole: Role = normalizeRole(role);
 
   const handleSelect = (nextRole: Role) => {
     if (nextRole === currentRole) return;
@@ -80,7 +64,7 @@ export default function RoleToggle({ userId, role, userName }: { userId: string;
       <ConfirmDialog
         open={pendingRole !== null}
         title={pendingRole === "admin" ? "Grant Admin" : pendingRole === "driver" ? "Set Driver" : "Revoke Access"}
-        message={pendingRole ? CONFIRM_COPY[pendingRole](userName) : ""}
+        message={pendingRole ? ROLE_CONFIRM_COPY[pendingRole](userName) : ""}
         confirmLabel="Confirm"
         cancelLabel="Cancel"
         onConfirm={() => pendingRole && commitRoleChange(pendingRole)}
