@@ -2,8 +2,12 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Shield, Users, Trash2, Loader2 } from "lucide-react";
+import { Trash2, Loader2 } from "lucide-react";
 import { ErrorBanner } from "@/components/ui/error-banner";
+
+type Role = "user" | "driver" | "admin";
+
+const ROLE_LABEL: Record<Role, string> = { user: "User", driver: "Driver", admin: "Admin" };
 
 export default function UserRowActions({
   userId,
@@ -20,14 +24,13 @@ export default function UserRowActions({
   const [updating, setUpdating] = useState(false);
   const [removing, setRemoving] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const isAdmin = role === "admin";
-  const nextRole = isAdmin ? "user" : "admin";
+  const currentRole: Role = role === "admin" || role === "driver" ? role : "user";
 
-  const handleToggleRole = async () => {
+  const handleRoleChange = async (nextRole: Role) => {
+    if (nextRole === currentRole) return;
+
     const confirmed = confirm(
-      `${isAdmin ? "Revoke" : "Grant"} admin clearance for ${userName}? They will ${
-        isAdmin ? "lose" : "gain"
-      } access to the admin vault immediately.`
+      `Change ${userName} from ${ROLE_LABEL[currentRole]} to ${ROLE_LABEL[nextRole]}? This takes effect immediately.`
     );
     if (!confirmed) return;
 
@@ -71,25 +74,21 @@ export default function UserRowActions({
   return (
     <div className="flex flex-col items-start gap-2 pointer-events-auto">
       <div className="flex items-center gap-2">
-        <button
-          onClick={handleToggleRole}
-          disabled={updating || removing}
-          title={isAdmin ? "Revoke Admin Access" : "Grant Admin Access"}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[9px] font-black uppercase tracking-widest transition-all disabled:opacity-50 ${
-            isAdmin
-              ? "bg-orange-500/10 border-orange-500/20 text-orange-500 hover:bg-red-500/10 hover:border-red-500/20 hover:text-red-400"
-              : "bg-white/5 border-white/10 text-gray-400 hover:bg-orange-500/10 hover:border-orange-500/20 hover:text-orange-500"
-          }`}
-        >
-          {updating ? (
-            <Loader2 size={10} className="animate-spin" />
-          ) : isAdmin ? (
-            <Shield size={10} />
-          ) : (
-            <Users size={10} />
+        <div className="relative">
+          <select
+            value={currentRole}
+            disabled={updating || removing}
+            onChange={(e) => handleRoleChange(e.target.value as Role)}
+            className="appearance-none bg-white/5 border border-white/10 text-gray-300 text-[9px] font-black uppercase tracking-widest rounded-full px-3 py-1.5 pr-6 outline-none disabled:opacity-50 hover:border-orange-500/30 transition-all"
+          >
+            <option value="user">User</option>
+            <option value="driver">Driver</option>
+            <option value="admin">Admin</option>
+          </select>
+          {updating && (
+            <Loader2 size={10} className="animate-spin absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
           )}
-          {isAdmin ? "Revoke" : "Promote"}
-        </button>
+        </div>
 
         <button
           onClick={handleRemove}
