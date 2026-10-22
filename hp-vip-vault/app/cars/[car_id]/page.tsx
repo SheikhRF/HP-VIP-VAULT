@@ -1,9 +1,11 @@
 import Navbar from "@/components/navbar";
 import Link from "next/link";
 import { createClient } from "@supabase/supabase-js";
-import { Plus, ChevronLeft, Gauge, Zap, Shield, Database, Activity } from "lucide-react";
+import { auth } from "@clerk/nextjs/server";
+import { Plus, Pencil, ChevronLeft, Gauge, Zap, Shield, Database, Activity } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import CarGallery from "@/components/CarGallery";
+import QuickAddPhotoButton from "@/components/admin/QuickAddPhotoButton";
 import Reveal from "@/components/Reveal";
 import SpeedBackdrop from "@/components/SpeedBackdrop";
 import GaugeDial from "@/components/GaugeDial";
@@ -36,6 +38,9 @@ export default async function CarDetailPage({
   const { car_id } = await params;
   const carId = Number(car_id);
   const supabase = getSupabase();
+
+  const { sessionClaims } = await auth();
+  const isAdmin = sessionClaims?.Role === "admin" || sessionClaims?.role === "admin";
 
   // Fetch car data and trip intelligence in parallel — trips only needs
   // carId, not the car fetch's result, so there's no reason to serialize them.
@@ -98,16 +103,27 @@ export default async function CarDetailPage({
               </div>
             </div>
 
-            <Button asChild variant="vault" className="hover-shine px-8 py-4 gap-3 tracking-tighter shadow-[0_0_30px_rgba(249,115,22,0.4)]">
-              <Link href={`/trips/add?car_id=${carId}`}>
-                <Plus size={20} strokeWidth={3} />
-                Add Trip
-              </Link>
-            </Button>
+            <div className="flex items-center gap-3">
+              {isAdmin && (
+                <Button asChild variant="vault-ghost" className="gap-3 tracking-tighter">
+                  <Link href={`/admin/cars/${carId}`}>
+                    <Pencil size={18} strokeWidth={3} />
+                    Admin Editor
+                  </Link>
+                </Button>
+              )}
+              <Button asChild variant="vault" className="hover-shine px-8 py-4 gap-3 tracking-tighter shadow-[0_0_30px_rgba(249,115,22,0.4)]">
+                <Link href={`/trips/add?car_id=${carId}`}>
+                  <Plus size={20} strokeWidth={3} />
+                  Add Trip
+                </Link>
+              </Button>
+            </div>
           </Reveal>
         </div>
 
         {/* Cinematic Gallery */}
+        {isAdmin && <QuickAddPhotoButton carId={carId} />}
         <CarGallery pictures={pictures} title={title} />
 
         {/* Technical Briefing Grid */}
