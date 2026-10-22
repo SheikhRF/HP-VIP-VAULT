@@ -2,22 +2,36 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Shield, Users, Loader2 } from "lucide-react";
+import { Shield, Car, Users, Loader2 } from "lucide-react";
 import { ErrorBanner } from "@/components/ui/error-banner";
+
+type Role = "user" | "driver" | "admin";
+
+const ROLE_CONFIG: Record<Role, { label: string; icon: typeof Shield; activeClass: string }> = {
+  admin: { label: "Admin", icon: Shield, activeClass: "bg-orange-500/10 border-orange-500/20 text-orange-500" },
+  driver: { label: "Driver", icon: Car, activeClass: "bg-blue-500/10 border-blue-500/20 text-blue-400" },
+  user: { label: "User", icon: Users, activeClass: "bg-white/5 border-white/10 text-gray-400" },
+};
+
+const CONFIRM_COPY: Record<Role, (userName: string) => string> = {
+  admin: (userName) =>
+    `Grant admin clearance for ${userName}? They will gain full access to the admin vault immediately.`,
+  driver: (userName) =>
+    `Set ${userName} as a driver? They will be able to log and edit their own trips immediately.`,
+  user: (userName) =>
+    `Revoke ${userName} to a plain user? They will lose admin access and/or the ability to log or edit trips immediately.`,
+};
 
 export default function RoleToggle({ userId, role, userName }: { userId: string; role: string; userName: string }) {
   const router = useRouter();
   const [updating, setUpdating] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const isAdmin = role === "admin";
-  const nextRole = isAdmin ? "user" : "admin";
+  const currentRole: Role = role === "admin" || role === "driver" ? role : "user";
 
-  const handleToggle = async () => {
-    const confirmed = confirm(
-      `${isAdmin ? "Revoke" : "Grant"} admin clearance for ${userName}? They will ${
-        isAdmin ? "lose" : "gain"
-      } access to the admin vault immediately.`
-    );
+  const handleSelect = async (nextRole: Role) => {
+    if (nextRole === currentRole) return;
+
+    const confirmed = confirm(CONFIRM_COPY[nextRole](userName));
     if (!confirmed) return;
 
     setErrorMsg(null);
@@ -40,24 +54,25 @@ export default function RoleToggle({ userId, role, userName }: { userId: string;
 
   return (
     <div className="flex flex-col items-start gap-2">
-      <button
-        onClick={handleToggle}
-        disabled={updating}
-        className={`flex items-center gap-2 px-4 py-2 rounded-full border text-[9px] font-black uppercase tracking-widest transition-all disabled:opacity-50 ${
-          isAdmin
-            ? "bg-orange-500/10 border-orange-500/20 text-orange-500 hover:bg-red-500/10 hover:border-red-500/20 hover:text-red-400"
-            : "bg-white/5 border-white/10 text-gray-400 hover:bg-orange-500/10 hover:border-orange-500/20 hover:text-orange-500"
-        }`}
-      >
-        {updating ? (
-          <Loader2 size={10} className="animate-spin" />
-        ) : isAdmin ? (
-          <Shield size={10} />
-        ) : (
-          <Users size={10} />
-        )}
-        {updating ? "Updating..." : isAdmin ? "Revoke Admin Access" : "Grant Admin Access"}
-      </button>
+      <div className="flex items-center gap-1 bg-white/5 border border-white/10 p-1 rounded-full">
+        {(Object.keys(ROLE_CONFIG) as Role[]).map((roleOption) => {
+          const { label, icon: Icon, activeClass } = ROLE_CONFIG[roleOption];
+          const isActive = roleOption === currentRole;
+          return (
+            <button
+              key={roleOption}
+              onClick={() => handleSelect(roleOption)}
+              disabled={updating}
+              className={`flex items-center gap-2 px-4 py-2 rounded-full border text-[9px] font-black uppercase tracking-widest transition-all disabled:opacity-50 ${
+                isActive ? activeClass : "bg-transparent border-transparent text-gray-600 hover:text-gray-300"
+              }`}
+            >
+              {updating && isActive ? <Loader2 size={10} className="animate-spin" /> : <Icon size={10} />}
+              {label}
+            </button>
+          );
+        })}
+      </div>
       <ErrorBanner message={errorMsg} />
     </div>
   );

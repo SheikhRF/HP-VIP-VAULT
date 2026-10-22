@@ -16,8 +16,8 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   const { id } = await params;
   const { role } = await req.json().catch(() => ({}));
 
-  if (role !== "admin" && role !== "user") {
-    return NextResponse.json({ ok: false, error: "Role must be 'admin' or 'user'." }, { status: 400 });
+  if (role !== "admin" && role !== "driver" && role !== "user") {
+    return NextResponse.json({ ok: false, error: "Role must be 'admin', 'driver', or 'user'." }, { status: 400 });
   }
 
   try {
