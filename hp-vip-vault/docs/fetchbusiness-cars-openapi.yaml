@@ -1,0 +1,116 @@
+openapi: 3.0.3
+info:
+  title: Horsepower.VIP Vault — Cars (read-only, fetchbusiness key)
+  description: >
+    Read-only access to the fleet's car inventory via Supabase's
+    auto-generated PostgREST API, using the "fetchbusiness" publishable key.
+    Access is restricted two ways: Row Level Security limits this role to
+    SELECT-only on the `cars` table (it cannot read `trips` or `profiles`,
+    and cannot write anything), and a column-level GRANT further restricts
+    which columns of `cars` are even visible — registration, MOT/tax
+    status, service/sync dates, and all spec fields are NOT grantable to
+    this key and will return a 401 "permission denied for table cars" if
+    requested, regardless of what `select=` asks for.
+  version: "1.1"
+servers:
+  - url: https://lnwltmhmqjnzrnbjtcce.supabase.co/rest/v1
+    description: Supabase PostgREST API (Horsepower.vip-Vault project)
+security:
+  - ApiKeyAuth: []
+paths:
+  /cars:
+    get:
+      summary: List cars in the fleet (business-relevant fields only)
+      description: >
+        Supports PostgREST query params for filtering/sorting/pagination,
+        e.g. ?make=eq.Porsche, ?order=make.asc, ?limit=20&offset=0,
+        ?select=make,model,price to pick specific columns. Only the columns
+        listed in the Car schema below are accessible — requesting any
+        other column (registration, mot, tax_status, tax_due_date,
+        service_date, last_synced_at, year_of_manufacture, or any spec
+        field) fails with 401 "permission denied for table cars" at the
+        database level, even though it's a read against a public table.
+      parameters:
+        - name: select
+          in: query
+          required: false
+          schema:
+            type: string
+          description: >
+            Comma-separated column list, limited to the Car schema's
+            properties (defaults to all accessible columns).
+        - name: order
+          in: query
+          required: false
+          schema:
+            type: string
+          example: "make.asc"
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Array of car records.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Car"
+        "401":
+          description: >
+            Missing/invalid apikey header, OR a select= that references a
+            column outside the grant (e.g. registration, mot, tax_status).
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: apikey
+      description: >
+        The "fetchbusiness" publishable key
+        (sb_publishable_2odrxeIc5aIne3neAxssCw_YgvR5BR_). Safe to share —
+        Supabase publishable keys are designed to be exposed client-side and
+        carry no privileged access on their own; actual access is governed
+        by this project's RLS policies plus an explicit per-column GRANT on
+        `cars` limiting the `anon` role to exactly the columns below.
+  schemas:
+    Car:
+      type: object
+      description: >
+        Only these 6 columns are readable by this key. make/model/
+        registration/compliance/spec data beyond this set is intentionally
+        excluded — not just undocumented, but actually un-grantable at the
+        database level.
+      properties:
+        car_id:
+          type: integer
+          format: int64
+          readOnly: true
+        make:
+          type: string
+          nullable: true
+        model:
+          type: string
+          nullable: true
+        price:
+          type: integer
+          format: int64
+          nullable: true
+        mileage:
+          type: integer
+          format: int64
+          nullable: true
+        pictures:
+          type: array
+          items:
+            type: string
+            format: uri
+          description: Public URLs into the `car-images` storage bucket.
