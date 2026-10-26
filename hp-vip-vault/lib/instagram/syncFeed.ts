@@ -111,17 +111,22 @@ export async function syncInstagramFeed(supabase: SupabaseClient, fetchFn: Fetch
   const items = result.data.data ?? [];
   const now = new Date().toISOString();
 
-  const rows = items.map((post, i) => ({
-    media_id: post.id,
-    caption: post.caption ?? null,
-    media_type: post.media_type,
-    media_url: post.media_url,
-    thumbnail_url: post.thumbnail_url ?? null,
-    permalink: post.permalink,
-    posted_at: post.timestamp,
-    cached_at: now,
-    sort_order: i,
-  }));
+  // Instagram's media endpoint omits media_url for some VIDEO/REELS posts — fall back to
+  // thumbnail_url (same fallback components/InstagramFeed.tsx already applies when rendering)
+  // so the NOT NULL media_url column in instagram_posts is never violated.
+  const rows = items
+    .filter((post) => post.media_url || post.thumbnail_url)
+    .map((post, i) => ({
+      media_id: post.id,
+      caption: post.caption ?? null,
+      media_type: post.media_type,
+      media_url: post.media_url ?? post.thumbnail_url!,
+      thumbnail_url: post.thumbnail_url ?? null,
+      permalink: post.permalink,
+      posted_at: post.timestamp,
+      cached_at: now,
+      sort_order: i,
+    }));
 
   if (rows.length > 0) {
     const { error: upsertError } = await supabase.from("instagram_posts").upsert(rows);
