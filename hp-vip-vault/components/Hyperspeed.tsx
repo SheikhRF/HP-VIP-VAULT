@@ -1,4 +1,4 @@
-import { useEffect, useRef, FC } from 'react';
+import { useEffect, useRef, useState, FC } from 'react';
 import * as THREE from 'three';
 import { BloomEffect, EffectComposer, EffectPass, RenderPass, SMAAEffect, SMAAPreset } from 'postprocessing';
 
@@ -1249,6 +1249,11 @@ const Hyperspeed: FC<HyperspeedProps> = ({ effectOptions = {} }) => {
     typeof window !== 'undefined' &&
     window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+  // WebGL context creation (or asset loading) can fail outright on devices/
+  // browsers with GPU/WebGL disabled or sandboxed — that throws out of this
+  // effect and would otherwise crash the whole page via the error boundary.
+  const [webglFailed, setWebglFailed] = useState(false);
+
   useEffect(() => {
     if (prefersReducedMotion) return;
 
@@ -1270,9 +1275,21 @@ const Hyperspeed: FC<HyperspeedProps> = ({ effectOptions = {} }) => {
       options.distortion = distortions[options.distortion];
     }
 
-    const myApp = new App(container, options);
+    let myApp: App;
+    try {
+      myApp = new App(container, options);
+    } catch (err) {
+      console.error('Hyperspeed: failed to create WebGL context, falling back to static background', err);
+      // Defer the setState: calling it synchronously inside the effect body
+      // itself (rather than from an async callback) trips react-hooks/set-state-in-effect.
+      queueMicrotask(() => setWebglFailed(true));
+      return;
+    }
     appRef.current = myApp;
-    myApp.loadAssets().then(myApp.init);
+    myApp.loadAssets().then(myApp.init).catch((err) => {
+      console.error('Hyperspeed: failed to load assets, falling back to static background', err);
+      setWebglFailed(true);
+    });
 
     return () => {
       if (appRef.current) {
@@ -1281,7 +1298,7 @@ const Hyperspeed: FC<HyperspeedProps> = ({ effectOptions = {} }) => {
     };
   }, [mergedOptions, prefersReducedMotion]);
 
-  if (prefersReducedMotion) {
+  if (prefersReducedMotion || webglFailed) {
     return (
       <div
         className="w-full h-full"
