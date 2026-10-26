@@ -2,9 +2,18 @@
 
 Scope: HTTP-level check of the deployed production site (`https://hp-vip-vault.vercel.app`) plus a local `next dev` run of the current branch, both as an unauthenticated visitor (no Clerk session). Checked main public/protected routes with `curl`; cross-referenced against `proxy.ts` and `app/layout.tsx`.
 
-## Critical — confirmed live in production
+## Retracted: findings #1 and #2 below were curl-testing artifacts, not real bugs
 
-### 1. Signed-out visitors get a bare 404 on protected pages instead of a sign-in prompt
+**Correction (2026-10-26, same day):** the two "critical" auth findings originally reported here (signed-out visitors getting a 404 or 500 instead of a sign-in redirect) were re-investigated after a user report and turned out to be **false positives caused by plain `curl` requests missing the headers a real browser navigation always sends** (`Accept: text/html...`, `Sec-Fetch-Dest: document`, `Sec-Fetch-Mode: navigate`). Clerk's `auth.protect()` treats a request without those as a "non-document request" and returns 404/handled differently — that's documented Clerk behavior, not a bug.
+
+Re-tested every previously-"broken" route (`/home`, `/about`, `/trips`, `/trips/add`, `/admin`, `/admin/dashboard`, `/cars/add`) on **both production and local dev** with proper browser-navigation headers: every single one now returns a clean **307** to Clerk's dev-instance handshake endpoint (`https://fair-alpaca-74.clerk.accounts.dev/v1/client/handshake?...&__clerk_hs_reason=dev-browser-missing`), which is the correct, working, by-design flow for a Clerk Development instance syncing its dev-browser cookie on a visitor's first touch. A real browser follows that redirect automatically and lands on the sign-in page (or the real page, if already signed in) exactly as intended. **There is no live auth bug here — nothing to fix.** The "Clerk is on a Development instance serving production traffic" item remains a legitimate, already-tracked infra concern (rate limits, branding, etc.), but it is not causing broken redirects for real visitors.
+
+Lesson: don't trust plain `curl -s -o /dev/null -w "%{http_code}"` status codes alone when checking Clerk-gated routes — always add `-H "Sec-Fetch-Dest: document"` (and ideally `Accept`/`User-Agent`) to get the same code path a browser hits, or just check in an actual browser.
+
+<details>
+<summary>Original (incorrect) write-up, kept for the record</summary>
+
+### 1. Signed-out visitors get a bare 404 on protected pages instead of a sign-in prompt — **INCORRECT, see retraction above**
 `GET https://hp-vip-vault.vercel.app/home` (and `/about`, `/cars`, `/cars/[id]`) returns **404 Not Found** for a signed-out visitor, not the expected redirect to `/sign-in`.
 
 Response headers confirm the cause:
@@ -13,14 +22,12 @@ X-Clerk-Auth-Reason: protect-rewrite, dev-browser-missing
 X-Clerk-Auth-Status: signed-out
 X-Matched-Path: /_not-found
 ```
-`auth.protect()` (`proxy.ts:68`) is silently rewriting to Next's `_not-found` page instead of redirecting, because Clerk's **Development-instance** dev-browser JWT handshake (`dev-browser-missing`) fails on a first-touch/server-rendered request — there's no prior client-side bootstrap to have set it. This is the live, concrete consequence of the already-known "Clerk is on a Development instance (`pk_test_...`) while serving production traffic" risk (documented in `CLAUDE.md`): it isn't just a latent config smell, it's actively breaking the experience for every signed-out visitor who lands directly on one of these pages — a shared link, a bookmark, a search-engine crawl, or just typing the URL. They see "page not found," not an invitation to log in.
+`auth.protect()` (`proxy.ts:68`) is silently rewriting to Next's `_not-found` page instead of redirecting, because Clerk's **Development-instance** dev-browser JWT handshake (`dev-browser-missing`) fails on a first-touch/server-rendered request — there's no prior client-side bootstrap to have set it.
 
-### 2. Signed-out visitors get a raw 500 on admin/driver-gated pages
-`GET https://hp-vip-vault.vercel.app/admin`, `/admin/dashboard`, `/trips`, `/trips/add`, `/cars/add` all return **500 Internal Server Error** for a signed-out visitor (body: plain `Internal Server Error`, no stack leak — that part is fine).
+### 2. Signed-out visitors get a raw 500 on admin/driver-gated pages — **INCORRECT, see retraction above**
+`GET https://hp-vip-vault.vercel.app/admin`, `/admin/dashboard`, `/trips`, `/trips/add`, `/cars/add` all return **500 Internal Server Error** for a signed-out visitor (body: plain `Internal Server Error`, no stack leak).
 
-Same root cause as #1, different failure mode: `proxy.ts`'s admin/driver branches (lines 32–52) call `await auth()` directly to read `sessionClaims`, rather than Clerk's `auth.protect()` helper used elsewhere. Under the same `dev-browser-missing` condition, that direct `auth()` call appears to throw instead of resolving to empty claims, so the middleware itself crashes with an unhandled exception instead of reaching its own `Response.redirect('/home')` fallback.
-
-**Net effect of #1 + #2:** right now, in production, nobody can land directly (signed out) on *any* of this app's real pages except `/`, `/sign-in`, and `/sign-up` without hitting a 404 or 500. The fix is almost certainly the already-tracked infra task — promote Clerk to a Production instance — rather than a code change; worth escalating its priority given this confirms real, present breakage rather than a theoretical gap.
+</details>
 
 ## Critical — confirmed live in production, now fixed
 
@@ -61,8 +68,8 @@ Independent of the crash above: `app/layout.tsx`'s header (`SignInButton`/`SignU
 **Suggested fix for #3/#4 together:** delete the header block in `app/layout.tsx` (lines 37-49) and its now-unused `SignInButton`/`SignUpButton`/`SignedIn`/`SignedOut`/`UserButton` imports — every page already has its own `Navbar` handling signed-in/out UI. This removes the crash and the stray duplicate UI in one fix.
 
 ## Low / noise
-- Local dev log repeatedly printed `TypeError: immutable` (frames ignore-listed, no usable stack) around the same requests that returned 500 on protected routes — most likely the same Next.js 16 "readonly headers/cookies in middleware" mechanism surfacing differently under Turbopack dev than in the production runtime; not independently actionable beyond fixing #1/#2's root cause.
-- Both the local dev server and production 500 bodies are plain text with no stack trace or internal detail leaked — good, no information-disclosure concern there.
+- Local dev log's `TypeError: immutable` (full stack confirmed via the Next dev error overlay: thrown entirely inside `@clerk/nextjs`'s compiled middleware code, no app frames) also turned out to be the same curl-header artifact — it stopped reproducing once the same requests were retried with `Sec-Fetch-Dest: document`. Likely Clerk's SDK hits a Next.js 16 "immutable headers" edge case specifically on the non-document-request code path it takes for a plain curl request; not something a real browser navigation triggers. Not independently actionable.
+- Both the local dev server and production 500 bodies (from the retracted findings) were plain text with no stack trace or internal detail leaked — good, no information-disclosure concern there, moot as it turned out.
 
 ## Not checked
 No Clerk session was available to this check, so authenticated flows (actually logging in, viewing `/admin/users`, uploading a car photo, logging a trip, etc.) were not exercised — this was strictly an unauthenticated, HTTP-level pass. A real browser-driven pass while signed in (the kind already documented in `plan.md`'s prior audits) would be the natural follow-up.
