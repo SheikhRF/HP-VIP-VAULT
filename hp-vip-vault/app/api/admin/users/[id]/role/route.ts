@@ -20,6 +20,10 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     return NextResponse.json({ ok: false, error: "Role must be 'admin', 'driver', or 'user'." }, { status: 400 });
   }
 
+  if (id === check.userId && role !== "admin") {
+    return NextResponse.json({ ok: false, error: "You can't change your own admin role." }, { status: 400 });
+  }
+
   try {
     const client = await clerkClient();
     await client.users.updateUserMetadata(id, { publicMetadata: { role } });

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { requireAdmin } from "@/lib/auth/requireAdmin";
+import { validatePhotoFile } from "@/lib/uploads";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -102,6 +103,12 @@ export async function POST(req: Request) {
   const files = form.getAll("photos").filter((v): v is File => v instanceof File);
   if (files.length === 0) {
     return NextResponse.json({ ok: false, error: "Please upload at least 1 photo" }, { status: 400 });
+  }
+  for (const file of files) {
+    const fileError = validatePhotoFile(file);
+    if (fileError) {
+      return NextResponse.json({ ok: false, error: fileError }, { status: 400 });
+    }
   }
 
   // 1) Get technical intelligence data

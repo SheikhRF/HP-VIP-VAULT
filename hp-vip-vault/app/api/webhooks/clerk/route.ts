@@ -27,9 +27,8 @@ export async function POST(req: Request) {
     return new Response('Error: Missing Svix headers', { status: 400 });
   }
 
-  // 2. GET RAW BODY
-  const payload = await req.json();
-  const body = JSON.stringify(payload);
+  // 2. GET RAW BODY (Svix signs the exact raw bytes, not a re-serialized object)
+  const body = await req.text();
 
   // 3. VERIFY WEBHOOK AUTHENTICITY
   const wh = new Webhook(WEBHOOK_SECRET);
