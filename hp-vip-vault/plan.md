@@ -1,5 +1,16 @@
 # History
 
+## ✅ Done: Instagram feed connected end-to-end, real posts live on /home
+
+Picked up where the Instagram feed was paused (Meta Developer app registration blocked on account trouble — see the old "PAUSED mid-setup" note, now removed from `CLAUDE.md`). The user had since created the Meta Developer app and connected `@horsepower.vip` to it.
+
+- **Meta dashboard (browser-driven, read/write with the user's own login):** confirmed the Instagram API (Instagram Login) product was already added on the `hp-vip-vault` app (App ID `1595349705590713`), required permissions (`instagram_business_basic`, `instagram_business_manage_comments`, `instagram_business_manage_messages`) already granted, and `@horsepower.vip` already listed as an Instagram Tester. Added the missing piece: the production OAuth redirect URL (`https://hp-vip-vault.vercel.app/api/admin/instagram-oauth/callback`) under "Set up Instagram business login".
+- **Credentials wired in:** added `INSTAGRAM_APP_ID`/`INSTAGRAM_APP_SECRET` to `.env.local` and to Vercel's Production environment variables, then redeployed so Production picked them up.
+- **Ran the one-time OAuth "Connect" flow** against production as admin — Instagram's consent screen correctly showed `hp-vip-vault-IG` requesting access to `horsepower.vip`; approved, and `instagram_token` was seeded in Supabase.
+- **Found and fixed a real bug** while verifying the manual "Sync Instagram" button: it 500'd with a generic `{"ok":false,"error":"Sync failed"}`. Root cause (via Vercel request logs + a local repro script against the real API): Instagram's media endpoint omits `media_url` for some VIDEO/REELS posts, but `instagram_posts.media_url` is `NOT NULL` in Supabase — the upsert threw a `PostgrestError`, which isn't an `Error` instance, so the route's `error instanceof Error` check fell through to the generic message instead of anything useful. **Fix:** `lib/instagram/syncFeed.ts` now falls back to `thumbnail_url` when `media_url` is missing (the same fallback `components/InstagramFeed.tsx` already applies when rendering). Commit `e897d4c`, pushed directly to `main` (Vercel auto-deployed).
+- **Verified live, end-to-end:** `/home` renders 12 real `@horsepower.vip` posts (cars, a meet, reels) instead of the fallback card; re-hit `/api/admin/sync-instagram` after the fix deployed and got back `{"ok":true,"synced":12}` from the actual production route (not just the local repro).
+- **Not yet done:** the daily cron (`app/api/cron/sync-instagram/route.ts`) calls the same now-fixed `syncInstagramFeed`, so it should work, but the scheduled run itself hasn't been observed firing yet.
+
 ## ✅ Done: inline role control + user removal on the admin Users Registry
 
 `/admin/users` previously only let admins view a search/filter table — changing a role or removing someone required opening that user's detail page (and removal wasn't possible at all). Both are now available directly on the table row.
