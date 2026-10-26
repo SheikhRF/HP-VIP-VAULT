@@ -1,6 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/auth/requireAdmin";
+import { validatePhotoFile } from "@/lib/uploads";
 
 // Initialize Supabase with Service Role for bypass permissions
 function getSupabase() {
@@ -97,10 +98,16 @@ export async function POST(req: Request) {
       }
 
       // 3. Handle New Photo Uploads
-      const newFiles = formData.getAll("photos") as File[];
+      const newFiles = formData.getAll("photos").filter((v): v is File => v instanceof File);
       const newPhotoUrls: string[] = [];
 
       if (newFiles.length > 0) {
+        for (const file of newFiles) {
+          const fileError = validatePhotoFile(file);
+          if (fileError) {
+            return NextResponse.json({ error: fileError }, { status: 400 });
+          }
+        }
         for (const file of newFiles) {
           const fileName = `${carId}/${Date.now()}-${file.name.replace(/\s+/g, "_")}`;
           const { data } = await supabase.storage
