@@ -21,6 +21,8 @@ const Hyperspeed = dynamic(() => import("@/components/Hyperspeed"), {
 
 export default function LandingPage() {
   return (
+    <>
+      <meta name="google-site-verification" content="UoYo5S2cJ3CcwOlK0EXAoO4bLUYDT3H4Kyppq5Rom3s" />
     <div className="relative h-screen w-screen overflow-hidden bg-black">
       {/* Background Effect - Preserved exactly as requested */}
       <Hyperspeed
@@ -108,5 +110,6 @@ export default function LandingPage() {
       </div>
 
     </div>
+    </>
   );
 }
